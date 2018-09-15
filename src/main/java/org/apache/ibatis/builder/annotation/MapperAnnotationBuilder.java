@@ -130,6 +130,7 @@ public class MapperAnnotationBuilder {
       assistant.setCurrentNamespace(type.getName());
       parseCache();
       parseCacheRef();
+      // todo liziq 生成了
       Method[] methods = type.getMethods();
       for (Method method : methods) {
         try {

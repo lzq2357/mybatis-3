@@ -22,8 +22,9 @@ public class ClientTest {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(in);
         SqlSession session = sqlSessionFactory.openSession();
 
-        String statement = "liziq.Mapper.selectPerson";
-        Person person = session.selectOne(statement, 2);
+        //
+        //String statement = "liziq.Mapper.selectPerson";
+        //Person person = session.selectOne(statement, 1);
         System.out.println(person.getName());
     }
 }

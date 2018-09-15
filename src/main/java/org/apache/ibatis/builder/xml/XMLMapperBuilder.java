@@ -104,6 +104,8 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void configurationElement(XNode context) {
+
+      //todo liziq 这里实际解析 mapper的各个 标签
     try {
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.equals("")) {
@@ -112,9 +114,14 @@ public class XMLMapperBuilder extends BaseBuilder {
       builderAssistant.setCurrentNamespace(namespace);
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
+      //todo liziq 解析参数map
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+
+      //todo liziq解析 结果集映射map
       resultMapElements(context.evalNodes("/mapper/resultMap"));
       sqlElement(context.evalNodes("/mapper/sql"));
+
+      //todo liziq 获取 select|insert|update|delete  sql，建立 statement
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -396,6 +403,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void bindMapperForNamespace() {
+      //todo liziq 生成 mapper接口对应的 动态代理类
     String namespace = builderAssistant.getCurrentNamespace();
     if (namespace != null) {
       Class<?> boundType = null;

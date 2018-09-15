@@ -61,6 +61,7 @@ public class XMLStatementBuilder extends BaseBuilder {
       return;
     }
 
+    //todo liziq 解析sql
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
     String parameterMap = context.getStringAttribute("parameterMap");

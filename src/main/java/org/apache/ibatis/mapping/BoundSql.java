@@ -35,6 +35,12 @@ import org.apache.ibatis.session.Configuration;
  */
 public class BoundSql {
 
+
+    /**
+     * todo liziq
+     * BoundSql 存原始sql，及和sql相关的 参数、返回值类型等
+     *
+     * */
   private final String sql;
   private final List<ParameterMapping> parameterMappings;
   private final Object parameterObject;

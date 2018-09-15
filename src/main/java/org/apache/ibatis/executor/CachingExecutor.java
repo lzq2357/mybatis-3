@@ -38,6 +38,12 @@ import org.apache.ibatis.transaction.Transaction;
  */
 public class CachingExecutor implements Executor {
 
+  /**
+   * todo liziq CachingExecutor
+   * 这是 代理 Executor，
+   * CachingExecutor使用装饰模式，实际执行者是 delegate， 默认是 SimpleExecutor
+   * */
+
   private final Executor delegate;
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
