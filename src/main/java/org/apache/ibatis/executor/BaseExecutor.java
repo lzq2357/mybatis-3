@@ -143,12 +143,15 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+
+    //todo liziq MappedStatement上，即 <select>标签中的flushCache=true，每次清缓存，走DB
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
+      //todo liziq 一级缓存，尝试从 PerpetualCache 获取缓存
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
@@ -196,6 +199,12 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+
+    //todo liziq cacheKey： 每次update，都是和以前做一次 "checkSum的累积计算"，同时加入对象updateList
+      //1.namespace + sqlId
+      //2.rowBounds，默认都是一样的
+      //3.sql
+      //4.sql参数
     CacheKey cacheKey = new CacheKey();
     cacheKey.update(ms.getId());
     cacheKey.update(rowBounds.getOffset());

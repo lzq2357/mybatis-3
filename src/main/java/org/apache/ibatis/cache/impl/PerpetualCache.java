@@ -25,6 +25,10 @@ import org.apache.ibatis.cache.CacheException;
 /**
  * @author Clinton Begin
  */
+
+/**
+ * todo liziq PerpetualCache = id + hashMap
+ * */
 public class PerpetualCache implements Cache {
 
   private final String id;

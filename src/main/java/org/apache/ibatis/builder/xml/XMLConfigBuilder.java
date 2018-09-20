@@ -367,6 +367,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
 
+          //TODO 对应了 mapper加载的四种方式
         if ("package".equals(child.getName())) {
             //TODO liziq 这里是 spring-mybatis 按包扫描
           String mapperPackage = child.getStringAttribute("name");
@@ -375,22 +376,26 @@ public class XMLConfigBuilder extends BaseBuilder {
         } else {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
-            //todo 根据 resource名称， 获取 代理类名称，
+
           String mapperClass = child.getStringAttribute("class");
+
+            //todo 根据 resource名称， 加载mapper
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
 
-            //todo liziq 解析mapper
+
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
           } else if (resource == null && url != null && mapperClass == null) {
+
+              //todo 根据 url 加载mapper
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
           } else if (resource == null && url == null && mapperClass != null) {
-              //todo liziq ???
+              //todo 根据class加载mapper
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {

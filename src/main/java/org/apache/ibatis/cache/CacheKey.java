@@ -76,6 +76,9 @@ public class CacheKey implements Cloneable, Serializable {
 
   @Override
   public boolean equals(Object object) {
+
+      //todo liziq cacheKey相等的条件：
+      // hashcode、checksum 一致，updateList里面的对象顺序也必须一致
     if (this == object) {
       return true;
     }

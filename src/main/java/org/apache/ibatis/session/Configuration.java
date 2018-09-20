@@ -575,7 +575,10 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+
+    //setting 上的 cacheEnabled
     if (cacheEnabled) {
+        //todo liziq cacheEnabled=true 默认开启二级缓存
       executor = new CachingExecutor(executor);
     }
     executor = (Executor) interceptorChain.pluginAll(executor);

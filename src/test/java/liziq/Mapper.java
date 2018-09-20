@@ -11,5 +11,5 @@ import java.util.List;
 /***/
 public interface Mapper {
 
-    List<Person> selectPerson();
+    List<Person> selectPerson(int id);
 }

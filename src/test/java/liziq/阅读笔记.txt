@@ -1,0 +1,61 @@
+
+可以对照官方文档看、DTD看
+http://www.mybatis.org/mybatis-3/zh/index.html
+
+涉及的模式：
+装饰模式：
+CachingExecutor装饰 Executor
+TransactionalCache 装饰Cache
+
+
+
+
+org.apache.ibatis.session.SqlSessionFactoryBuilder.build(java.io.InputStream)   ->  DefaultSqlSessionFactory
+ >org.apache.ibatis.builder.xml.XMLConfigBuilder.parseConfiguration -> 解析配置，填充 configuration 对象
+  >org.apache.ibatis.builder.xml.XMLConfigBuilder.environmentsElement   设置 configuration.environment，里面包含 dateSource 数据源
+  >org.apache.ibatis.builder.xml.XMLConfigBuilder.settingsElement 设置默认值
+  >org.apache.ibatis.builder.xml.XMLConfigBuilder.mapperElement 解析mapper文件， 4种方式，使用XMLMapperBuilder解析
+
+
+
+org.apache.ibatis.session.SqlSessionFactory.openSession() ->  DefaultSqlSession
+ >org.apache.ibatis.binding.MapperRegistry.getMapper
+
+
+
+
+# 一级二级缓存
+cacheKey： 每次update，都是和以前做一次 "checkSum的累积计算"，同时加入对象updateList
+cacheKey相等的条件： hashcode、checksum 一致，updateList里面的对象顺序也必须一致
+
+
+
+一级缓存：SqlSession
+org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(java.lang.String, java.lang.Object, RowBounds)
+ >org.apache.ibatis.executor.BaseExecutor.query(MappedStatement, Object, RowBounds,ResultHandler)
+  >
+一级缓存是在 SqlSession 上，不能手动关闭，每次SqlSession执行完成后，会删掉缓存
+
+
+
+
+二级缓存：CacheExecutor.MappedStatement.cache
+
+二级缓存使用的地方：
+org.apache.ibatis.executor.CachingExecutor.query(MappedStatement, java.lang.Object, RowBounds, ResultHandler, CacheKey, BoundSql)
+
+二级缓存开启的地方：即生成
+
+org.apache.ibatis.builder.xml.XMLConfigBuilder.settingsElement，设置  setting.cacheEnabled
+org.apache.ibatis.session.Configuration.newExecutor(org.apache.ibatis.transaction.Transaction, org.apache.ibatis.session.ExecutorType)
+
+select上的flushCache、useCache  在 cacheEnabled为true时，可以控制 当前sql是否被二级缓存缓存下来
+mapper.xml中的<cache>节点可以配置 缓存的算法、过期时间等，可以自定义缓存，使用redis等，实现Cache接口，配置<cache type="myCacheClass">
+
+
+
+
+二级缓存问题：
+1.多表A、B 联查，如果 通过其他SQL改了B表的值，  当前SQL是无法感知的，所以会继续查出错误的缓存
+2.分布式情况下，数据不一致问题。
+解决方案：使用 redis等做二级缓存

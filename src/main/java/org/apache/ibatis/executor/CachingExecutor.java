@@ -98,11 +98,16 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
+
+      //todo liziq 二级缓存，key和 一级缓存的key是一样的
     Cache cache = ms.getCache();
     if (cache != null) {
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
+
+        //todo liziq TransactionalCacheManager
+
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
@@ -112,6 +117,8 @@ public class CachingExecutor implements Executor {
         return list;
       }
     }
+
+    //这里会走到 BaseExecutor 里面，即 二级缓存 先于一级缓存
     return delegate.<E> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
