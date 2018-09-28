@@ -6,10 +6,14 @@ package liziq;
  * @description:
  */
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 /***/
 public interface Mapper {
 
     List<Person> selectPerson(int id);
+
+    List<PersonWithTag> selectPersonWithTag(@Param("id") int id);
 }

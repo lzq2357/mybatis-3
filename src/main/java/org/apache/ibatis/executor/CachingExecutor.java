@@ -106,7 +106,7 @@ public class CachingExecutor implements Executor {
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
 
-        //todo liziq TransactionalCacheManager
+        //todo liziq tcm -> TransactionalCache 是cache的装饰
 
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);

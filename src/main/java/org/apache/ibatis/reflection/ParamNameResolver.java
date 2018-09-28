@@ -108,6 +108,14 @@ public class ParamNameResolver {
    * </p>
    */
   public Object getNamedParams(Object[] args) {
+
+      /**
+       * todo liziq 预处理 传入的参数值
+       * 传入时，是按 传入顺序 index 来映射的
+       * 转换为：按 parameter1  或者  @param() 指定的值
+       *
+       * 所以这里的 结果，一般来说，是 args.length * 2 个
+       * **/
     final int paramCount = names.size();
     if (args == null || paramCount == 0) {
       return null;

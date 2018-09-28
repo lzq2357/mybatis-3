@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
+import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
@@ -41,6 +42,8 @@ public class DefaultParameterHandler implements ParameterHandler {
   private final TypeHandlerRegistry typeHandlerRegistry;
 
   private final MappedStatement mappedStatement;
+
+  /** 当前 处理的 参数map，参数值。比如 <id,1> */
   private final Object parameterObject;
   private final BoundSql boundSql;
   private final Configuration configuration;
@@ -58,13 +61,24 @@ public class DefaultParameterHandler implements ParameterHandler {
     return parameterObject;
   }
 
+
+
+
+  /**
+   * todo liziq 参数处理器 ParameterHandler
+   * StatementHandler.parameterize() 调用这个方法，即 在准备statement的时候 才会来处理参数
+   * **/
   @Override
   public void setParameters(PreparedStatement ps) {
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
+
+    // sql上的 参数占位。 解析mapper.xml时，会把里面的 占位参数 #{}、${} 放到 boundSql.parameterMappings 里面
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings != null) {
       for (int i = 0; i < parameterMappings.size(); i++) {
         ParameterMapping parameterMapping = parameterMappings.get(i);
+
+
         if (parameterMapping.getMode() != ParameterMode.OUT) {
           Object value;
           String propertyName = parameterMapping.getProperty();
@@ -73,17 +87,22 @@ public class DefaultParameterHandler implements ParameterHandler {
           } else if (parameterObject == null) {
             value = null;
           } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+
+
             value = parameterObject;
           } else {
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             value = metaObject.getValue(propertyName);
           }
+
+            /** 查找 类型处理器  */
           TypeHandler typeHandler = parameterMapping.getTypeHandler();
           JdbcType jdbcType = parameterMapping.getJdbcType();
           if (value == null && jdbcType == null) {
             jdbcType = configuration.getJdbcTypeForNull();
           }
           try {
+              /** todo liziq 设置参数值  value*/
             typeHandler.setParameter(ps, i + 1, value, jdbcType);
           } catch (TypeException e) {
             throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);

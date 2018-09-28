@@ -1,0 +1,52 @@
+
+
+1.插件必须实现 Interceptor 类，同时 加上 Intercepts 注解
+2.插件必须声明 拦截的方法、拦截的 类
+3.插件必须在 mybatis-configuration.xml 中声明
+
+
+
+1. 类上加注解（不是必须的  ）
+@Intercepts({
+        @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class, Integer.class})
+})
+指定要拦截哪个对象的哪个方法，多个 Signature 就是拦截多个对象
+Signature：具体哪个对象、哪个方法，方法的参数（可以区别重载？），
+用到 官方Plugin.wrap(target, this) 时，必须要 @Intercepts
+
+
+Executor 执行器方法：(update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+ParameterHandler 参数处理方法 ：(getParameterObject, setParameters)
+ResultSetHandler 结果集处理方法：(handleResultSets, handleOutputParameters)
+StatementHandler 最终sql处理方法：(prepare, parameterize, batch, update, query)
+
+
+
+2. Interceptor接口：
+intercept(Invocation )方法：我们写 拦截后，处理 业务逻辑 的地方
+    invocation： 执行环境，包括 目标类、目标方法、目标参数
+plugin(target)：根据 原目标类，创建代理对象的逻辑，
+    官方提供了一个 动态代理 创建代理类 的方法，所以固定写法：return Plugin.wrap(target, this);
+setProperties：
+    获取 配置插件时，配置的 变量
+
+
+
+3. ParameterHandler 参数处理对象
+
+    org.apache.ibatis.reflection.ParamNameResolver.getNamedParams : 预处理用户传入参数，把参数值 绑定到 参数别名上
+     >org.apache.ibatis.executor.statement.PreparedStatementHandler.parameterize： 处理SQL
+      >org.apache.ibatis.scripting.defaults.DefaultParameterHandler.setParameters：处理参数，把参数 放到sql
+
+4. ResultSetHandler 结果集处理对象
+
+org.apache.ibatis.executor.statement.PreparedStatementHandler.query：    执行，获取结果
+ >org.apache.ibatis.executor.resultset.DefaultResultSetHandler.handleResultSets
+  >org.apache.ibatis.executor.resultset.DefaultResultSetHandler.handleRowValuesForSimpleResultMap
+   >org.apache.ibatis.executor.resultset.DefaultResultSetHandler.getRowValue(org.apache.ibatis.executor.resultset.ResultSetWrapper, org.apache.ibatis.mapping.ResultMap, java.lang.String)
+    >org.apache.ibatis.executor.resultset.DefaultResultSetHandler.getPropertyMappingValue：获取 property对应的值
+
+
+
+5. StatementHandler：和数据库 交互。它会使用parameterHandler 和 ResultHandler，绑定SQL参数和组装最后的结果返回。
+    RoutingStatementHandler

@@ -118,11 +118,12 @@ public class XMLMapperBuilder extends BaseBuilder {
 
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
-      //todo liziq 解析参数map
+      //todo liziq 解析参数  parameterMapm
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
 
-      //todo liziq解析 结果集映射map
+      //todo liziq 解析 结果集映射  resultMap
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+
       sqlElement(context.evalNodes("/mapper/sql"));
 
       //todo liziq 获取 select|insert|update|delete  sql，建立 statement
@@ -276,6 +277,8 @@ public class XMLMapperBuilder extends BaseBuilder {
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
+
+    //todo liziq
     String extend = resultMapNode.getStringAttribute("extends");
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
     Class<?> typeClass = resolveClass(type);

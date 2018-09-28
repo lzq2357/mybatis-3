@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
 <configuration>
-  
-  <environments default="﻿development">
-	  <environment id="﻿development">
+	
+	<plugins>
+		<plugin interceptor="liziq.MyInterceptor1"/>
+	</plugins>
+	
+  <environments default="development">
+	  <environment id="development">
 		  <!-- 事务管理类型，JDBC表示直接使用JDBC的提交和回滚设置，依赖于数据源得到的连接来管理事务 -->
 		  <transactionManager type="JDBC" />
 		
@@ -17,6 +21,7 @@
 	  </environment>
   </environments>
   
+	
   <mappers>
 	  <mapper resource="resources/liziq/Mapper.xml" />
   </mappers>

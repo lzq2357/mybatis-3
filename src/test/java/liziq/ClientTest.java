@@ -22,8 +22,9 @@ public class ClientTest {
         InputStream in = Resources.getResourceAsStream("resources/liziq/mybatis-config.xml");
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(in);
         SqlSession session = sqlSessionFactory.openSession();
-        final Mapper mapper = session.getMapper(Mapper.class);
-        final List<Person> people = mapper.selectPerson(1);
+        Mapper mapper = session.getMapper(Mapper.class);
+
+       // List<PersonWithTag> personWithTags = mapper.selectPersonWithTag(3);
 
         //
         String statement = "liziq.Mapper.selectPerson";

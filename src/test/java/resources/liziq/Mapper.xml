@@ -15,4 +15,39 @@
 	<select id="selectPerson" parameterType="int" resultMap="BaseResultMap">
 		select id,name from user where id = #{id}
 	</select>
+	
+	
+	
+	
+	
+	<resultMap id="BaseResultMapWithTag" type = "liziq.PersonWithTag">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		
+		<collection property="tagList" ofType="liziq.Tag">
+			<id column="tag_id" property="id"/>
+			<result column="tag_name" property="tagName"/>
+		</collection>
+	</resultMap>
+	
+	
+	<select id="selectPersonWithTag" resultMap="BaseResultMapWithTag">
+		select
+			u.id,
+			u.name,
+			utt.tag_id as tag_id,
+			t.tag_name as tag_name
+			
+		from
+			user u
+		left join
+			user_to_tag utt
+		on u.id = utt.user_id
+		
+		left join
+			tag t
+		on t.id = utt.tag_id
+		where u.id in(1,2,3)
+
+	</select>
 </mapper>
