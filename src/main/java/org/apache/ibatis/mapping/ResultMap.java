@@ -40,9 +40,13 @@ public class ResultMap {
   private String id;
   private Class<?> type;
   private List<ResultMapping> resultMappings;
+
+  /** id 列*/
   private List<ResultMapping> idResultMappings;
   private List<ResultMapping> constructorResultMappings;
   private List<ResultMapping> propertyResultMappings;
+
+
   private Set<String> mappedColumns;
   private Set<String> mappedProperties;
   private Discriminator discriminator;

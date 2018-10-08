@@ -137,6 +137,8 @@ public class MetaObject {
       }
       metaValue.setValue(prop.getChildren(), value);
     } else {
+
+        //todo liziq  设置 对象的值  列值-> 对象值
       objectWrapper.set(prop, value);
     }
   }

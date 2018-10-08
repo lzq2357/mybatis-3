@@ -189,7 +189,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
     int resultSetCount = 0;
 
-    /** todo liziq 获取 第一行数据， 后面 while 循环 */
+    /** todo liziq 获取 第一行数据，列名， 后面 while 循环 */
     ResultSetWrapper rsw = getFirstResultSet(stmt);
     /**
      * todo liziq 查询到的结果集，即 <resultMap/> 对应的 对象
@@ -451,7 +451,8 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     boolean foundValues = false;
     final List<ResultMapping> propertyMappings = resultMap.getPropertyResultMappings();
 
-    //todo liziq 循环处理 ResultMap 中的 每个 property列
+    //todo liziq 循环处理 ResultMap 中的 每个 property列，已经处理过的行 会存放在 mappedColumnNames  不会再处理
+      //rsw 数据库结果集， 已处理过的行，放在 mappedColumnNames，未处理过的行，放在 unMappedColumnNamesMap
     for (ResultMapping propertyMapping : propertyMappings) {
       String column = prependPrefix(propertyMapping.getColumn(), columnPrefix);
       if (propertyMapping.getNestedResultMapId() != null) {
@@ -500,13 +501,52 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     }
   }
 
+
+    /***
+     * todo liziq 【重要】 查找自动映射的列
+     *
+     * 对于 嵌套的 mapping，每个collection 等都会作为一个单独的 resultMap， 都会再从 结果集中查找 合适的 column，映射到 property
+     *
+     * 下面的有两个 resultMap :
+     * BaseImageInfoResultMap，它有 image_id、name、image_url、imageTagList 四个property，imageTagList不能直接从数据库列 拿到值
+     * BaseImageInfoResultMap#imageTagList：它有 tag_id、tag_name、tag_type 3个property， 组装好对象后，会link到 BaseImageInfoResultMap
+     *
+     * 从数据库列 拿值逻辑：通过列名，去resultMap对象上，找property 名称，相等 则 obj.property = columnValue
+     */
+    /**
+     <resultMap id="BaseImageInfoResultMap" type="com.yit.image.entity.ImageInfo">
+         <id column="image_id" property="id" jdbcType="INTEGER"/>
+         <result column="name" property="name" jdbcType="CHAR"/>
+         <result column="image_url" property="url" jdbcType="VARCHAR"/>
+
+         <collection property="imageTagList" ofType="com.yit.image.entity.ImageTag">
+             <id column="tag_id" property="id" jdbcType="INTEGER"/>
+             <result column="tag_name" property="name" jdbcType="VARCHAR"/>
+             <result column="tag_type" property="tagType" jdbcType="VARCHAR"/>
+         </collection>
+     </resultMap>
+     * */
   private List<UnMappedColumnAutoMapping> createAutomaticMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
+
+
     final String mapKey = resultMap.getId() + ":" + columnPrefix;
+
+
+    //未处理的 property
+      //由于每个 嵌套的 mapping，都是单独的 一个resultMap，
+      //所以
+      // 对于BaseImageInfoResultMap来说：未处理的  有：tag_id、tag_name、tag_type
+      // 对于 BaseImageInfoResultMap#imageTagList 来说，未处理的 property有：image_id、image_url
+
     List<UnMappedColumnAutoMapping> autoMapping = autoMappingsCache.get(mapKey);
     if (autoMapping == null) {
       autoMapping = new ArrayList<>();
+
+      //数据库结果集  中，存在未处理过的列名（不包含自身的property）
       final List<String> unmappedColumnNames = rsw.getUnmappedColumnNames(resultMap, columnPrefix);
       for (String columnName : unmappedColumnNames) {
+
+          //列名
         String propertyName = columnName;
         if (columnPrefix != null && !columnPrefix.isEmpty()) {
           // When columnPrefix is specified,
@@ -517,7 +557,10 @@ public class DefaultResultSetHandler implements ResultSetHandler {
             continue;
           }
         }
+
+        // 在 当前bean 中，查找和 propertyName(列名) 相同的 property名称
         final String property = metaObject.findProperty(propertyName, configuration.isMapUnderscoreToCamelCase());
+
         if (property != null && metaObject.hasSetter(property)) {
           if (resultMap.getMappedProperties().contains(property)) {
             continue;
@@ -541,15 +584,20 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   }
 
   private boolean applyAutomaticMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
+
+      //todo liziq 开启了 autoMappingBehavior 后，对嵌套的resultMap以字段-属性的映射支持
     List<UnMappedColumnAutoMapping> autoMapping = createAutomaticMappings(rsw, resultMap, metaObject, columnPrefix);
     boolean foundValues = false;
     if (!autoMapping.isEmpty()) {
       for (UnMappedColumnAutoMapping mapping : autoMapping) {
+
+          //todo liziq  post -tag, id 不会重复，但是 name相同，会导致 再取一次name
         final Object value = mapping.typeHandler.getResult(rsw.getResultSet(), mapping.column);
         if (value != null) {
           foundValues = true;
         }
         if (value != null || (configuration.isCallSettersOnNulls() && !mapping.primitive)) {
+            //设置bean的值
           // gcode issue #377, call setter on nulls (value is not 'found')
           metaObject.setValue(mapping.property, value);
         }
@@ -876,15 +924,19 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private void handleRowValuesForNestedResultMap(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler<?> resultHandler, RowBounds rowBounds, ResultMapping parentMapping) throws SQLException {
     final DefaultResultContext<Object> resultContext = new DefaultResultContext<>();
+
+    //逻辑 分页，跳过 n条数据
     skipRows(rsw.getResultSet(), rowBounds);
     Object rowValue = previousRowValue;
     while (shouldProcessMoreRows(resultContext, rowBounds) && rsw.getResultSet().next()) {
       final ResultMap discriminatedResultMap = resolveDiscriminatedResultMap(rsw.getResultSet(), resultMap, null);
 
-      //todo liziq 这里的cacheKey ???
+      //
       final CacheKey rowKey = createRowKey(discriminatedResultMap, rsw, null);
       Object partialObject = nestedResultObjects.get(rowKey);
 
+
+      // rsw 是数据库结果集，discriminatedResultMap 是 mapping 映射关系
       // issue #577 && #542
       if (mappedStatement.isResultOrdered()) {
         if (partialObject == null && rowValue != null) {
@@ -893,6 +945,8 @@ public class DefaultResultSetHandler implements ResultSetHandler {
         }
         rowValue = getRowValue(rsw, discriminatedResultMap, rowKey, null, partialObject);
       } else {
+
+          //获取 当前行的 值
         rowValue = getRowValue(rsw, discriminatedResultMap, rowKey, null, partialObject);
         if (partialObject == null) {
           storeObject(resultHandler, resultContext, rowValue, parentMapping, rsw.getResultSet());
@@ -912,7 +966,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   //
 
     /**
-     * todo liziq 从
+     * todo liziq getRowValue
      * */
   private Object getRowValue(ResultSetWrapper rsw, ResultMap resultMap, CacheKey combinedKey, String columnPrefix, Object partialObject) throws SQLException {
     final String resultMapId = resultMap.getId();
@@ -932,10 +986,16 @@ public class DefaultResultSetHandler implements ResultSetHandler {
         final MetaObject metaObject = configuration.newMetaObject(rowValue);
         boolean foundValues = this.useConstructorMappings;
         if (shouldApplyAutomaticMappings(resultMap, true)) {
+
+            //设置 property 值
           foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, columnPrefix) || foundValues;
         }
+
+        //设置 property 值
         foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, columnPrefix) || foundValues;
         putAncestor(rowValue, resultMapId);
+
+        //设置 collection 的 property 值
         foundValues = applyNestedResultMappings(rsw, resultMap, metaObject, columnPrefix, combinedKey, true) || foundValues;
         ancestorObjects.remove(resultMapId);
         foundValues = lazyLoader.size() > 0 || foundValues;
@@ -981,10 +1041,15 @@ public class DefaultResultSetHandler implements ResultSetHandler {
           final CacheKey combinedKey = combineKeys(rowKey, parentRowKey);
           Object rowValue = nestedResultObjects.get(combinedKey);
           boolean knownValue = rowValue != null;
+
+          //实例化一个  空的 collection 对象
           instantiateCollectionPropertyIfAppropriate(resultMapping, metaObject); // mandatory
           if (anyNotNullColumnHasValue(resultMapping, columnPrefix, rsw)) {
+              //获取 collection内部的 property值
             rowValue = getRowValue(rsw, nestedResultMap, combinedKey, columnPrefix, rowValue);
             if (rowValue != null && !knownValue) {
+
+                //collection 加到 原对象上
               linkObjects(metaObject, resultMapping, rowValue);
               foundValues = true;
             }

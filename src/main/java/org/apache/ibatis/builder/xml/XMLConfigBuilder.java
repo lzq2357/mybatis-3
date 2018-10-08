@@ -243,6 +243,9 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private void settingsElement(Properties props) throws Exception {
+      /**
+       * todo liziq 开启了 autoMappingBehavior=FULL 后，对嵌套的resultMap以字段-属性的映射支持（直接以列名 查找property），默认不开启
+       */
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
     configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
