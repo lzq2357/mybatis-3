@@ -410,6 +410,11 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   // GET VALUE FROM ROW FOR SIMPLE RESULT MAP
   //
 
+
+    /**
+     * todo liziq 无嵌套resultMap 映射结果集到对象
+     *
+     * */
   private Object getRowValue(ResultSetWrapper rsw, ResultMap resultMap, String columnPrefix) throws SQLException {
     final ResultLoaderMap lazyLoader = new ResultLoaderMap();
     Object rowValue = createResultObject(rsw, resultMap, lazyLoader, columnPrefix);
@@ -417,11 +422,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       final MetaObject metaObject = configuration.newMetaObject(rowValue);
       boolean foundValues = this.useConstructorMappings;
       if (shouldApplyAutomaticMappings(resultMap, false)) {
-          //todo liziq 自动映射，即 不写resultMap，而使用 resultType，把所有 名称相同的 自动映射
+          //开启了自动映射，把所有 column -> obj.property 名称相同的 自动映射
+          //即 resultType
         foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, columnPrefix) || foundValues;
       }
 
-      //todo liziq 根据属性映射，即 <column,property/>  这种普通的格式映射
+      //剩余的 根据属性映射，即 <column,property/>  这种普通的格式映射
       foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, columnPrefix) || foundValues;
       foundValues = lazyLoader.size() > 0 || foundValues;
       rowValue = foundValues || configuration.isReturnInstanceForEmptyRow() ? rowValue : null;
@@ -966,7 +972,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   //
 
     /**
-     * todo liziq getRowValue
+     * todo liziq 嵌套resultMap getRowValue
      * */
   private Object getRowValue(ResultSetWrapper rsw, ResultMap resultMap, CacheKey combinedKey, String columnPrefix, Object partialObject) throws SQLException {
     final String resultMapId = resultMap.getId();
@@ -980,22 +986,23 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     } else {
       final ResultLoaderMap lazyLoader = new ResultLoaderMap();
 
-      //从 resultMap 获取 数据
+      //创建一个 空对象
       rowValue = createResultObject(rsw, resultMap, lazyLoader, columnPrefix);
+
       if (rowValue != null && !hasTypeHandlerForResultObject(rsw, resultMap.getType())) {
         final MetaObject metaObject = configuration.newMetaObject(rowValue);
         boolean foundValues = this.useConstructorMappings;
         if (shouldApplyAutomaticMappings(resultMap, true)) {
 
-            //设置 property 值
+            //设置 自动映射的 property 值
           foundValues = applyAutomaticMappings(rsw, resultMap, metaObject, columnPrefix) || foundValues;
         }
 
-        //设置 property 值
+        //设置剩余的  property 值
         foundValues = applyPropertyMappings(rsw, resultMap, metaObject, lazyLoader, columnPrefix) || foundValues;
         putAncestor(rowValue, resultMapId);
 
-        //设置 collection 的 property 值
+        //设置剩余的  嵌套对象的  property 值
         foundValues = applyNestedResultMappings(rsw, resultMap, metaObject, columnPrefix, combinedKey, true) || foundValues;
         ancestorObjects.remove(resultMapId);
         foundValues = lazyLoader.size() > 0 || foundValues;

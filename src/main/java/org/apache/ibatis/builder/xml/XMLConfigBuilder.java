@@ -270,6 +270,8 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setDefaultEnumTypeHandler(typeHandler);
     configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty("callSettersOnNulls"), false));
     configuration.setUseActualParamName(booleanValueOf(props.getProperty("useActualParamName"), true));
+
+    // 返回默认对象
     configuration.setReturnInstanceForEmptyRow(booleanValueOf(props.getProperty("returnInstanceForEmptyRow"), false));
     configuration.setLogPrefix(props.getProperty("logPrefix"));
     @SuppressWarnings("unchecked")
