@@ -29,6 +29,9 @@ import org.xml.sax.SAXException;
  * 
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
+ *
+ * 作用是 解析 xml时， 指定本地 DTD的位置，避免网上加载DTD，影响速度
  */
 public class XMLMapperEntityResolver implements EntityResolver {
 
@@ -52,6 +55,8 @@ public class XMLMapperEntityResolver implements EntityResolver {
   @Override
   public InputSource resolveEntity(String publicId, String systemId) throws SAXException {
     try {
+
+        /*** system是本地，public 是网络加载dtd */
       if (systemId != null) {
         String lowerCaseSystemId = systemId.toLowerCase(Locale.ENGLISH);
         if (lowerCaseSystemId.contains(MYBATIS_CONFIG_SYSTEM) || lowerCaseSystemId.contains(IBATIS_CONFIG_SYSTEM)) {

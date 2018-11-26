@@ -2,6 +2,14 @@
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
 <configuration>
 	
+	
+	<properties>
+		<!-- 默认值功能，默认false，即 ${xxx:defaultValue} ，如果变量 xxx 未配置，则使用defaultValue 作为变量值-->
+		<property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"/>
+		
+		<!-- 分隔符，默认使用 : -->
+		<property name="org.apache.ibatis.parsing.PropertyParser.default-value-separator" value=":"/>
+	</properties>
 	<plugins>
 		<plugin interceptor="liziq.MyInterceptor1"/>
 	</plugins>

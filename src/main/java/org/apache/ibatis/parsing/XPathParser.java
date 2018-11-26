@@ -42,12 +42,36 @@ import org.xml.sax.SAXParseException;
 /**
  * @author Clinton Begin
  */
+
+/**
+ *
+ * XPathParser：mybatis 封装底层的 dom、xpath
+ *
+ * 这里是 dom方式 读取解析 xml 的标准写法
+ *
+ *
+ * commonConstructor：通用构造函数。会读取初始化dom、xpath
+ *   entityResolver：XMLMapperEntityResolver，作用是 指定本地 DTD的位置，避免网上加载DTD，影响速度
+ * createDocument：dom方式 创建document
+ *
+ *
+ * 提供了各种  Xpath.eval方法的封装
+ * evalString：还会执行 PropertyParser.parse
+ * */
+
 public class XPathParser {
 
   private final Document document;
+
+  /** 开启 dtd 验证，会提前设置entityResolver，读取本地DTD  */
   private boolean validation;
+
+  /** 加载本地 dtd，  XMLMapperEntityResolver  */
   private EntityResolver entityResolver;
+
+  /*** mybatis-config.xml 中<propteries>标签定义的键位对集合 */
   private Properties variables;
+
   private XPath xpath;
 
   public XPathParser(String xml) {

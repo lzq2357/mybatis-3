@@ -52,6 +52,7 @@ public class PropertyParser {
 
   public static String parse(String string, Properties variables) {
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+    //解析 ${var}
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
     return parser.parse(string);
   }
@@ -78,18 +79,26 @@ public class PropertyParser {
         if (enableDefaultValue) {
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
+
+          //存在 分隔符，获取 defaultValue
           if (separatorIndex >= 0) {
             key = content.substring(0, separatorIndex);
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
+
+          //获取 变量的值，不存在 则返回默认值
           if (defaultValue != null) {
             return variables.getProperty(key, defaultValue);
           }
         }
+
+        //未开启默认值，则直接查找 key对应的值
         if (variables.containsKey(key)) {
           return variables.getProperty(key);
         }
       }
+
+      //如果找不到key对应的值，则认为是 ${xxx} 是一个普通字符串
       return "${" + content + "}";
     }
   }
