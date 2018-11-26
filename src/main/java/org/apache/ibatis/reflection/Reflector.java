@@ -44,25 +44,64 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  *
  * @author Clinton Begin
  */
+
+
+
+/**
+ * 每个 Reflector 对象都对应一个类，在 Reflector 中 缓存了反射操作需要使用的类的元信息。
+ *
+ * */
 public class Reflector {
 
+    /** Reflector对应的类 */
   private final Class<?> type;
-  private final String[] readablePropertyNames;
+
+
+    /** 可读属性 名称集合：存在getter
+     *  可写属性：存在setter
+     * */
+    private final String[] readablePropertyNames;
   private final String[] writeablePropertyNames;
+
+
+  /**
+   * 属性名称 对应的 getter / setter ，存在 map
+   * 比如：int x,  x->getX(),  x->setX(int x)
+   *
+   * Invoker：field + method
+   * */
   private final Map<String, Invoker> setMethods = new HashMap<>();
   private final Map<String, Invoker> getMethods = new HashMap<>();
+
+
+  /**
+   * 属性名称，对应的 setter 的参数类型，getter的返回值类型
+   * 比如
+   * */
   private final Map<String, Class<?>> setTypes = new HashMap<>();
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+
+  /** 默认构造函数 */
   private Constructor<?> defaultConstructor;
 
+  /** 所有属性的名称 */
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
     type = clazz;
+
+
     addDefaultConstructor(clazz);
+
+    //getter
     addGetMethods(clazz);
+
+    //setter
     addSetMethods(clazz);
+
     addFields(clazz);
+
+
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
     for (String propName : readablePropertyNames) {
@@ -112,13 +151,19 @@ public class Reflector {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
       String propName = entry.getKey();
+
+      //选择排序的思想，取最优的，winner 是当前情况下的最优的，后续的值 不断和 winner比较，然后替换
       for (Method candidate : entry.getValue()) {
         if (winner == null) {
           winner = candidate;
           continue;
         }
+
+        //比较返回值
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
+
+        //返回值相同
         if (candidateType.equals(winnerType)) {
           if (!boolean.class.equals(candidateType)) {
             throw new ReflectionException(
@@ -152,6 +197,10 @@ public class Reflector {
   }
 
   private void addSetMethods(Class<?> cls) {
+
+      //先把 所有 setXXX(arg)，且只有一个参数的，把属性名称解出来
+      //
+      //多个 setXXX 解出来可能对应 同一个属性。
     Map<String, List<Method>> conflictingSetters = new HashMap<>();
     Method[] methods = getClassMethods(cls);
     for (Method method : methods) {
@@ -163,6 +212,8 @@ public class Reflector {
         }
       }
     }
+
+    //解决 多个 setXXX 解出来可能对应 同一个属性。
     resolveSetterConflicts(conflictingSetters);
   }
 
@@ -262,6 +313,8 @@ public class Reflector {
           // issue #379 - removed the check for final because JDK 1.5 allows
           // modification of final fields through reflection (JSR-133). (JGB)
           // pr #16 - final static can only be set by the classloader
+
+            //static final 静态变量 。无法处理
           int modifiers = field.getModifiers();
           if (!(Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers))) {
             addSetField(field);
@@ -316,9 +369,13 @@ public class Reflector {
       // because the class may be abstract
       Class<?>[] interfaces = currentClass.getInterfaces();
       for (Class<?> anInterface : interfaces) {
+
+          //为每个方法 生成一个唯一签名：返回值类型#方法名称:参数类型列表
+          //如果 已经存在相同签名，说明是 子类已添加，所以无需再添加
         addUniqueMethods(uniqueMethods, anInterface.getMethods());
       }
 
+      //从下到上 递归获取 所有方法
       currentClass = currentClass.getSuperclass();
     }
 

@@ -23,5 +23,10 @@ import java.lang.reflect.InvocationTargetException;
 public interface Invoker {
   Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException;
 
+  /**
+   * set：参数类型
+   * get：返回值类型
+   * field：定义类型
+   * */
   Class<?> getType();
 }
