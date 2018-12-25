@@ -1,0 +1,133 @@
+
+
+
+
+2.基础层
+
+2.1 Xml解析
+XPathParser：mybatis 封装底层的 dom、xpath，提供了各种  Xpath.eval方法的封装
+    XMLMapperEntityResolver：解析 xml时， 指定本地 DTD的位置，避免网上加载DTD，影响速度
+    evalString：执行 PropertyParser.parse，  即：如果开启了默认值，还需要解析默认值。 enable-default-value/default-value-separator
+        默认值格式 ${xxx:defaultValue} ，如果变量 xxx 未配置，则使用defaultValue 作为 配置的值
+
+
+用到的工具类：
+PropertyParser：通过 GenericTokenParser  +  VariableTokenHandler 处理 ${xxx:defaultValue}
+GenericTokenParser：通用占位符解析。通用的查找 [openToken, closeToken]  顺序查找 占位符的 开始、结束。 解析 ${xxx} 的值
+    查找到的变量，交由 TokenHandler接口的 handleToken() 处理， 策略模式
+VariableTokenHandler：根据 变量 查找 变量值 。能处理 xxx:defaultValue 这种默认值情况
+
+
+
+
+
+
+2.2 反射
+mybatis 封装 简化了 java的反射操作
+Reflector：每个对象 对应了一个类，在 Reflector 中 缓存了反射操作需要使用的类的元信息。
+    readablePropertyNames / writeablePropertyNames：有getter / setter 方法的 属性
+    addFields()：初始化时，对没有 getter / setter 的属性，addFields 会生成一个 GetFieldInvoker / SetFieldInvoker，然后作为属性的getter/setter方法
+
+TypeParameterResolver：参数类型解析工具
+
+
+ObjectFactory(DefaultObjectFactory)：根据 指定 class，创建对象。  ObjectFactory 可config.xml中 自定义
+    create() -> instantiateClass()：根据 提供的参数，选择合适的 构造函数 创建对象
+
+
+MetaClass： 类信息的包装。通过 PropertyTokenizer 解析复杂表达式 所表示的属性，然后 通过 Reflector 查证属性 的值。
+
+ObjectWrapper： 对象的包装。定义了 set/get 对象上的 属性值的 方法 (通过 MetaClass 获取到 GetInvoker，然后invoke )
+    有 MapWrapper、CollectionWrapper、BeanWrapper，分别对应 普通bean、list/array、map类型 做了封装。
+MetaObject：相比较 ObjectWrapper，增加了对属性表达式的解析。  MetaObject 和 ObjectWrapper 互相依赖 处理属性表达式 到 对象上的属性值 转换
+
+
+
+
+
+用到的工具类：
+PropertyTokenizer：解析复杂的 导航表达式，比如 a.b[1].c
+PropertyNamer： 解析 get set方法，获取 对应的 field
+PropertyCopier：复制 sourceBean的属性值，到 destinationBean 属性上。
+
+
+
+
+2.3 类型转换
+JdbcType：枚举了所有 JDBC的数据类型。
+
+自己实现类型转换器，继承 BaseTypeHandler 就可以。（实现TypeHandler ）
+
+TypeHandlerRegistry：管理 TypeHandler。
+    使用 几个 map 来维护  javaType 、handler、jdbcType 关系
+    register(TypeHandler<T> typeHandler)： 根据 handler 声明的注解注册。 @MappedTypes( java类型 )、 @MappedJdbcTypes (jdbc 类型)
+    register(String packageName): 调用 ResolverUtil.IsA 扫描 指定包下的 TypeHandler，然后注册
+    最终 都会调用 register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler)
+
+TypeAliasRegistry：管理 别名。
+    registerAlias(Class<?> type)：根据 类上的 @Alias 获取别名，如果没有，则使用 type.getSimpleName 做别名
+    registerAliases(String packageName)：扫描 指定包下的 类，然后 调用 registerAlias(Class<?> type) 做别名
+
+
+
+工具类：ResolverUtil
+
+
+
+
+
+2.5 资源加载
+ClassLoaderWrapper：包装了 ClassLoader，
+    getClassLoaders(classLoader)：返回一个 ClassLoader[]，调用方会按顺序 循环取第一个不为null的加载器去加载资源。
+        classLoader,   方法 参数指定的类加载器，一般为null
+        defaultClassLoader,  通过 set方法设置 一个默认加载器，默认为null
+        Thread.currentThread().getContextClassLoader(),  线程加载器，默认都是使用这个加载器。
+        getClass().getClassLoader(),    当前类加载器
+        systemClassLoader：  系统加载器
+
+Resources：封装了ClassLoaderWrapper，通过ClassLoaderWrapper 完成资源加载
+
+
+ResolverUtil：按指定条件 扫描包内。 条件是 Test接口指定的。
+    find(Test test, String package)： 使用 VFS接口，查找 .class 资源。 使用 线程类加载器去加载 找到的 class
+    mybatis 实现了 两个Test接口：
+        IsA 查找指定包下，是指定类型的子类的 类
+        AnnotatedWith：类上带有 指定注解
+
+
+VFS：虚拟文件系统。这里只是 mybatis 自定义的一个接口，包含 list、isValid 两个方法，查找指定资源。
+    VFS 使用 单例默认，懒汉模式。  使用的静态内部类 实现的。
+
+    默认实现 IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
+    用户自定义的 VFS，会通过 addImplClass 存放在 USER_IMPLEMENTATIONS
+
+
+
+
+
+
+
+
+
+
+
+2.6 DataSource
+
+工厂模式
+
+PoolState：管理线程的 线程池
+    idleConnections：空闲线程list
+    activeConnections：活跃线程list
+PooledConnection：线程池 缓存的连接
+PooledDataSource：线程池配置
+
+
+
+
+
+
+
+
+
+
+

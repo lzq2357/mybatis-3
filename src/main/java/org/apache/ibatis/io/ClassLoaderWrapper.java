@@ -22,6 +22,9 @@ import java.net.URL;
  * A class to wrap access to multiple class loaders making them work as one
  *
  * @author Clinton Begin
+ *
+ *
+ * 包装了  ClassLoader
  */
 public class ClassLoaderWrapper {
 
@@ -144,6 +147,9 @@ public class ClassLoaderWrapper {
       if (null != cl) {
 
         // look for the resource as passed in...
+          /**
+           *  使用 当前加载器加载资源 ，内部会 使用委托父加载器加载 资源
+           * */
         url = cl.getResource(resource);
 
         // ...but some class loaders want this leading "/", so we'll add it

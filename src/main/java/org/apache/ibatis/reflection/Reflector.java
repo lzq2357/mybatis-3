@@ -51,6 +51,8 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  * 每个 Reflector 对象都对应一个类，在 Reflector 中 缓存了反射操作需要使用的类的元信息。
  *
  * */
+
+
 public class Reflector {
 
     /** Reflector对应的类 */
@@ -87,16 +89,21 @@ public class Reflector {
   /** 所有属性的名称 */
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
+    /** 初始化时，先把 getter setter方法加入到指定集合。
+     *
+     * */
+
+
   public Reflector(Class<?> clazz) {
     type = clazz;
 
 
     addDefaultConstructor(clazz);
 
-    //getter
+    /**先把 getter setter方法加入到指定集合。
+     * 没有 getter / setter 的属性，addFields 会生成一个 GetFieldInvoker / SetFieldInvoker
+     * */
     addGetMethods(clazz);
-
-    //setter
     addSetMethods(clazz);
 
     addFields(clazz);
@@ -130,6 +137,10 @@ public class Reflector {
     }
   }
 
+
+  /**
+   *  解析 class 中的getter方法，并加入到 getMethods
+   * */
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
     Method[] methods = getClassMethods(cls);
@@ -152,7 +163,7 @@ public class Reflector {
       Method winner = null;
       String propName = entry.getKey();
 
-      //选择排序的思想，取最优的，winner 是当前情况下的最优的，后续的值 不断和 winner比较，然后替换
+      /** 选择排序的思想，取最优的，winner 是当前情况下的最优的，后续的值 不断和 winner比较，然后替换 */
       for (Method candidate : entry.getValue()) {
         if (winner == null) {
           winner = candidate;
@@ -370,8 +381,9 @@ public class Reflector {
       Class<?>[] interfaces = currentClass.getInterfaces();
       for (Class<?> anInterface : interfaces) {
 
-          //为每个方法 生成一个唯一签名：返回值类型#方法名称:参数类型列表
-          //如果 已经存在相同签名，说明是 子类已添加，所以无需再添加
+          /** 为每个方法 生成一个唯一签名：返回值类型#方法名称:参数类型列表
+          如果 已经存在相同签名，说明是 子类已添加，所以无需再添加
+           */
         addUniqueMethods(uniqueMethods, anInterface.getMethods());
       }
 

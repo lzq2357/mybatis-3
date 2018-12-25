@@ -26,10 +26,18 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public interface ObjectWrapper {
 
+
+    /**
+     * 如果 是bean对象（BeanWrapper），则调用 对象的 getXXX
+     * 如果是集合(CollectionWrapper)，则调用 CollectionWrapper
+     * 如果是Map(MapWrapper)，则调用 map.get(key)
+     * */
   Object get(PropertyTokenizer prop);
 
   void set(PropertyTokenizer prop, Object value);
 
+
+    /** 查找属性表达式指定的属性，第二个参数表示是否忽略属性表达式中的 下 画线**/
   String findProperty(String name, boolean useCamelCaseMapping);
 
   String[] getGetterNames();
@@ -44,6 +52,7 @@ public interface ObjectWrapper {
 
   boolean hasGetter(String name);
 
+    /** 为属性表达式指定的属性创建对象，然后往对象上赋值 */
   MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory);
   
   boolean isCollection();

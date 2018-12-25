@@ -28,6 +28,9 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
  * @author Clinton Begin
+ *
+ * 通过 Reflector  +  PropertyTokenizer： 获取复杂表达式的  表示的属性值
+ *
  */
 public class MetaClass {
 
@@ -168,13 +171,22 @@ public class MetaClass {
   }
 
   private StringBuilder buildProperty(String name, StringBuilder builder) {
+      /** 处理 点(.) 的导航表达式
+       *  比如 a.b，解析到 a ，从 reflector查找存在 a
+       *  再 对 b，创建一个 MetaClass，再从 b的MetaClass.reflector查找存在 b
+       * **/
     PropertyTokenizer prop = new PropertyTokenizer(name);
+
     if (prop.hasNext()) {
       String propertyName = reflector.findPropertyName(prop.getName());
       if (propertyName != null) {
         builder.append(propertyName);
         builder.append(".");
+
+        /** 为该属性，创建对象的 MetaClass **/
         MetaClass metaProp = metaClassForProperty(propertyName);
+
+        /** 递归解析 PropertyTokenizer.children 字段，并将解析结果添加到 builder 中保存 */
         metaProp.buildProperty(prop.getChildren(), builder);
       }
     } else {

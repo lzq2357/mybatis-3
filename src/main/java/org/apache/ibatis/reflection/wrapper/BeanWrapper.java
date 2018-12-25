@@ -174,7 +174,7 @@ public class BeanWrapper extends BaseWrapper {
 
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
-        //todo liziq 反射调用 bean的setter方法，把 列的值 赋值到 对象上
+        /** liziq 反射调用 bean的setter方法，把 列的值 赋值到 对象上 **/
       Invoker method = metaClass.getSetInvoker(prop.getName());
       Object[] params = {value};
       try {

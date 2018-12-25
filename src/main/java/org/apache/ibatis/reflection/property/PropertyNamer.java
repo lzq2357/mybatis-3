@@ -21,6 +21,9 @@ import org.apache.ibatis.reflection.ReflectionException;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * PropertyNamer： 解析 get set方法，获取 对应的 field
  */
 public final class PropertyNamer {
 

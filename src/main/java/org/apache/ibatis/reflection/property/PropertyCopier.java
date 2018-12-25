@@ -19,6 +19,8 @@ import java.lang.reflect.Field;
 
 /**
  * @author Clinton Begin
+ *
+ * 复制 sourceBean的属性值，到 destinationBean 属性上。
  */
 public final class PropertyCopier {
 

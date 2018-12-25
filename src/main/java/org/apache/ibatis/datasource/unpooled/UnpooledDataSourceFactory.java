@@ -26,6 +26,9 @@ import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
  * @author Clinton Begin
+ *
+ * 获取 UnpooledDataSource
+ * 读取 properties中的 driver. 开头的 变量 作为 数据库连接的 变量
  */
 public class UnpooledDataSourceFactory implements DataSourceFactory {
 
@@ -44,6 +47,8 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
+
+      //获取
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
         String value = properties.getProperty(propertyName);
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);

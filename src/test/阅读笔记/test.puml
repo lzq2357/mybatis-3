@@ -1,0 +1,7 @@
+@startuml
+SqlSessionFactory->XMLConfigBuilder:build()
+XMLConfigBuilder->XMLConfigBuilder:parseConfiguration:\n解析mybatisconfig.xml\n填充 configuration 对象
+XMLConfigBuilder->XMLConfigBuilder:environmentsElement:\n设置 configuration.environment，\n里面包含 dateSource 数据源
+
+
+@enduml

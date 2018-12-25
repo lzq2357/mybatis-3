@@ -20,13 +20,19 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
+ *
+ * 线程池
+ *
  */
 public class PoolState {
 
   protected PooledDataSource dataSource;
 
+  /** 空闲线程 、活跃线程 */
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
+
+  /** 统计字段，统计  等待时间等 */
   protected long requestCount = 0;
   protected long accumulatedRequestTime = 0;
   protected long accumulatedCheckoutTime = 0;

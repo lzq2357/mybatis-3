@@ -391,6 +391,8 @@ public class PooledDataSource implements DataSource {
 
     while (conn == null) {
       synchronized (state) {
+
+          /** 有空闲线程 */
         if (!state.idleConnections.isEmpty()) {
           // Pool has available connection
           conn = state.idleConnections.remove(0);
@@ -407,6 +409,7 @@ public class PooledDataSource implements DataSource {
             }
           } else {
             // Cannot create new connection
+              //查看 最老的 连接，是否超时，超时了就 remove掉重新 建一个
             PooledConnection oldestActiveConnection = state.activeConnections.get(0);
             long longestCheckoutTime = oldestActiveConnection.getCheckoutTime();
             if (longestCheckoutTime > poolMaximumCheckoutTime) {
@@ -415,6 +418,8 @@ public class PooledDataSource implements DataSource {
               state.accumulatedCheckoutTimeOfOverdueConnections += longestCheckoutTime;
               state.accumulatedCheckoutTime += longestCheckoutTime;
               state.activeConnections.remove(oldestActiveConnection);
+
+              //如果 有事务，事务回滚
               if (!oldestActiveConnection.getRealConnection().getAutoCommit()) {
                 try {
                   oldestActiveConnection.getRealConnection().rollback();

@@ -29,13 +29,28 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 
 /**
  * @author Clinton Begin
+ *
+ * MetaObject和ObjectWrapper中 关于类级别的方法，例如hasGetter()、hasSetter()、findProperty() 等方法 ，都是直接调用 MetaClass 的对应方法实现的
+ * 关于对象级别 的方法，这些方法都是与 ObjectWrapper 配合实现，
+ * 例如 MetaObject.getValue()/setValue()方法
+ *
  */
 public class MetaObject {
 
+
+    /**java bean 原始对象*/
   private final Object originalObject;
+
+  /** objectWrapper：对原始对象的包装，包装为 ObjectWrapper */
   private final ObjectWrapper objectWrapper;
+
+  /** 实例化originalObject 的工厂 */
   private final ObjectFactory objectFactory;
+
+  /** 实例化objectWrapper 的工厂 */
   private final ObjectWrapperFactory objectWrapperFactory;
+
+  /** reflectorFactory ： 创建并缓存 Reflector */
   private final ReflectorFactory reflectorFactory;
 
   private MetaObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
@@ -44,19 +59,31 @@ public class MetaObject {
     this.objectWrapperFactory = objectWrapperFactory;
     this.reflectorFactory = reflectorFactory;
 
+    /** 如果原始对象是 ObjectWrapper，则不需要再封装了*/
     if (object instanceof ObjectWrapper) {
       this.objectWrapper = (ObjectWrapper) object;
     } else if (objectWrapperFactory.hasWrapperFor(object)) {
+        /**
+         * objectWrapperFactory 能用，则优先使用 objectWrapperFactory 返回objectWrapper
+         * 但是 默认实现 的 objectWrapperFactory 永远返回 false，这里只是用于 用户扩展
+         * **/
       this.objectWrapper = objectWrapperFactory.getWrapperFor(this, object);
     } else if (object instanceof Map) {
+        //Map对象
       this.objectWrapper = new MapWrapper(this, (Map) object);
     } else if (object instanceof Collection) {
+        // Collection 对象
       this.objectWrapper = new CollectionWrapper(this, (Collection) object);
     } else {
+        //普通bean
       this.objectWrapper = new BeanWrapper(this, object);
     }
   }
 
+
+  /**
+   * 构造方法是 私有的，只能通过 forObject 来构造对象
+   * */
   public static MetaObject forObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
     if (object == null) {
       return SystemMetaObject.NULL_META_OBJECT;
@@ -110,18 +137,24 @@ public class MetaObject {
   }
 
   public Object getValue(String name) {
+      /**
+       * 解析 表达式，解析到最后的那个属性，则从 wrapper 中获取值
+       * */
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return null;
       } else {
+          /** 递归处理 子表达式 */
         return metaValue.getValue(prop.getChildren());
       }
     } else {
       return objectWrapper.get(prop);
     }
   }
+
+
 
   public void setValue(String name, Object value) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -138,7 +171,7 @@ public class MetaObject {
       metaValue.setValue(prop.getChildren(), value);
     } else {
 
-        //todo liziq  设置 对象的值  列值-> 对象值
+        // liziq  设置 对象的值  列值-> 对象值
       objectWrapper.set(prop, value);
     }
   }

@@ -164,6 +164,8 @@ public class XPathParser {
 
   public String evalString(Object root, String expression) {
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+
+    /*** 获取到 String值后，需要查看这个 字符串 是不是 有默认值 ***/
     result = PropertyParser.parse(result, variables);
     return result;
   }

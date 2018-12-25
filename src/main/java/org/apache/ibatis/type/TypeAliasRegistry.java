@@ -34,6 +34,14 @@ import org.apache.ibatis.io.Resources;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * 别名 Alias 管理器
+ *
+ * registerAlias(Class<?> type)：根据 类上的 @Alias 获取别名，如果没有，则使用 type.getSimpleName 做别名
+ * registerAliases(String packageName)：扫描 指定包下的 类，然后 调用 registerAlias(Class<?> type) 做别名
+ *
+ *
  */
 public class TypeAliasRegistry {
 

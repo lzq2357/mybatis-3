@@ -58,6 +58,8 @@ public class DefaultVFS extends VFS {
 
       // First, try to find the URL of a JAR file containing the requested resource. If a JAR
       // file is found, then we'll list child resources by reading the JAR.
+
+        /** 从 jar包中 查询 path */
       URL jarUrl = findJarForResource(url);
       if (jarUrl != null) {
         is = jarUrl.openStream();
@@ -69,6 +71,8 @@ public class DefaultVFS extends VFS {
       else {
         List<String> children = new ArrayList<>();
         try {
+
+            // path 是一个 jar 包
           if (isJar(url)) {
             // Some versions of JBoss VFS might give a JAR stream even if the resource
             // referenced by the URL isn't actually a JAR
@@ -146,6 +150,8 @@ public class DefaultVFS extends VFS {
         }
 
         // Iterate over immediate children, adding files and recursing into directories
+
+          //遍历 子目录 查找 path指定的资源
         for (String child : children) {
           String resourcePath = path + "/" + child;
           resources.add(resourcePath);

@@ -19,6 +19,25 @@ import java.util.Iterator;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * 解析复杂的 导航表达式
+ *
+ * a.b[1].c
+ *
+ * 初始时：
+ * name = a
+ * children=b[1].c
+ * indexedName = a
+ * index=null
+ *
+ * 调用next()方法（第二轮）
+ * name = b[1]
+ * children = c
+ * indexedName = b[1]
+ * index = 1，同时 name去掉[1], name = b
+ *
+ *
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   private String name;
@@ -28,6 +47,7 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
 
   public PropertyTokenizer(String fullname) {
     int delim = fullname.indexOf('.');
+    //处理 . 导航
     if (delim > -1) {
       name = fullname.substring(0, delim);
       children = fullname.substring(delim + 1);
@@ -36,6 +56,7 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
       children = null;
     }
     indexedName = name;
+    //处理 [] 下标导航
     delim = name.indexOf('[');
     if (delim > -1) {
       index = name.substring(delim + 1, name.length() - 1);

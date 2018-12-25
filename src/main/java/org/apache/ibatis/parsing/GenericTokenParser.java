@@ -19,14 +19,12 @@ package org.apache.ibatis.parsing;
  * @author Clinton Begin
  *
  *
- * 通用占位符解析
+ * 通用占位符解析。通用的查找 [openToken, closeToken]  顺序查找 占位符的 开始、结束
+ * 查找到的变量，交由 TokenHandler接口的 handleToken() 处理， 策略模式
  */
 public class GenericTokenParser {
 
-    /**
-     * 通用的查找 [openToken, closeToken]  顺序查找 占位符的 开始、结束
-     * 交由 TokenHandler接口的 handleToken() 处理， 策略模式
-     * */
+
   private final String openToken;
   private final String closeToken;
   private final TokenHandler handler;

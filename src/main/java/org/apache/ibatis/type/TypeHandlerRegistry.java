@@ -51,9 +51,25 @@ import org.apache.ibatis.io.Resources;
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
+
+
+/**
+ *  管理  java类型 -> TypeHandler、
+ *  jdbc类型 ->  TypeHandler
+ *
+ * register(TypeHandler<T> typeHandler)： 根据 handler 声明的注解注册。 MappedTypes( java类型 )、 MappedJdbcTypes (jdbc 类型)
+ * register(String packageName): 调用 ResolverUtil.IsA 扫描 指定包下的 TypeHandler，然后注册
+ *
+ * 最终 都会调用 register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler)
+ *
+ *
+ * */
 public final class TypeHandlerRegistry {
 
+    /** jdbc类型 -> 处理器 */
   private final Map<JdbcType, TypeHandler<?>> JDBC_TYPE_HANDLER_MAP = new EnumMap<>(JdbcType.class);
+
+  /**java类型 -> jdbc类型 -> 处理器 */
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> TYPE_HANDLER_MAP = new ConcurrentHashMap<>();
   private final TypeHandler<Object> UNKNOWN_TYPE_HANDLER = new UnknownTypeHandler(this);
   private final Map<Class<?>, TypeHandler<?>> ALL_TYPE_HANDLERS_MAP = new HashMap<>();
@@ -61,6 +77,9 @@ public final class TypeHandlerRegistry {
   private static final Map<JdbcType, TypeHandler<?>> NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
 
   private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class;
+
+
+
 
   public TypeHandlerRegistry() {
     register(Boolean.class, new BooleanTypeHandler());
@@ -345,6 +364,7 @@ public final class TypeHandlerRegistry {
     register((Type) javaType, typeHandler);
   }
 
+
   private <T> void register(Type javaType, TypeHandler<? extends T> typeHandler) {
     MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);
     if (mappedJdbcTypes != null) {
@@ -369,7 +389,18 @@ public final class TypeHandlerRegistry {
     register((Type) type, jdbcType, handler);
   }
 
+
+
+    /**
+     * 最终都会的调用这个方法 注册 type handler
+     *
+     * javaType：处理器能 处理的java类型
+     * jdbcType：能处理的 jdbc类型
+     *
+     * */
   private void register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler) {
+
+
     if (javaType != null) {
       Map<JdbcType, TypeHandler<?>> map = TYPE_HANDLER_MAP.get(javaType);
       if (map == null || map == NULL_TYPE_HANDLER_MAP) {
@@ -442,6 +473,10 @@ public final class TypeHandlerRegistry {
   // scan
 
   public void register(String packageName) {
+
+      /**
+       *  调用 ResolverUtil.IsA 扫描 指定包下的 TypeHandler，然后注册
+       * */
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
     Set<Class<? extends Class<?>>> handlerSet = resolverUtil.getClasses();
