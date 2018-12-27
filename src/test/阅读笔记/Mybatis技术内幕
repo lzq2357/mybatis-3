@@ -123,9 +123,57 @@ PooledDataSource：线程池配置
 
 
 
+2.7 Transaction
+    JdbcTransaction：所有的 commit、rollback、close 都是直接 操作 原始的jdbc
+    ManagedTransaction：commit、rollback 都是空的，因为这里是让第三方框架 操作，所以这里啥也不做
 
 
 
+
+
+
+2.8 binding模块
+MapperRegistry：接口管理中心，管理 Mapper接口 及其对应的  【代理对象的工厂对象MapperProxyFactory】
+    knownMappers：已注册的 Mapper接口，是一个 Map<Class, MapperProxyFactory> 结构
+    getMapper：根据指定的 Mapper接口，获取它的 代理对象 MapperProxy，而代理对象 是通过 代理对象工厂 生成的
+
+MapperProxyFactory：生成并缓存 MapperProxy 的工厂类
+MapperProxy 实现了 InvocationHandler，用于被动态代理生成对象（主要是生成的对象要执行 invoke方法）
+    methodCache： Map<Method, MapperMethod>  缓存了 Mapper接口的 所有方法
+
+MapperMethod：Mapper接口的方法 + SQL信息(name + 类型)
+
+ParamNameResolver：处理参数 名称，有 @param 按指定名称，没有则按
+
+
+
+
+
+
+2.9 Cache
+只有 PerpetualCache 是真正的实现了 Cache功能，其他的都是 装饰了 PerpetualCache
+
+PerpetualCache：使用 Map 实现了缓存
+LruCache：使用 LinkedHashMap 队列存储 cachekey，使用了参数 accessOrder：按访问排序（即LRU）
+    插入一个元素后，会调用 removeEldestEntry ，判断是否删除头部的元素，如果满了 1024个 则移除
+SoftCache：软引用缓存。如果GC后，内存仍然不足，就会回收 Soft引用
+    SoftEntry：把要缓存对象，包装成一个软引用，引用队列是 queueOfGarbageCollectedEntries
+        当GC回收了value时，会把 SoftEntry 放入 ReferenceQueue， 这样 会根据 queueOfGarbageCollectedEntries ，移除掉 被GC的 softEntry
+    hardLinksToAvoidGarbageCollection：如果 SoftEntry 被用到了，则 hardLinksToAvoidGarbageCollection引用 SoftEntry
+WeakCache：弱引用：GC时，回收弱引用 指向的对象，所以弱引用的 生存时间是 两次GC之间。
+ScheduledCache：定时清理的 缓存。
+
+
+CacheKey：
+
+
+
+
+
+
+
+
+3
 
 
 

@@ -107,6 +107,8 @@ public class Configuration {
   protected boolean useColumnLabel = true;
   protected boolean cacheEnabled = true;
   protected boolean callSettersOnNulls;
+
+  /** Mapper接口的参数，没有@Param，则使用实际参数名称，否则按param + i */
   protected boolean useActualParamName = true;
   protected boolean returnInstanceForEmptyRow;
 

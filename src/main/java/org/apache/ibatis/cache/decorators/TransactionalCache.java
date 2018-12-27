@@ -38,9 +38,7 @@ import org.apache.ibatis.logging.LogFactory;
  */
 
 
-/**
- * todo liziq TransactionalCache 是一个 Cache 的装饰模式
- * */
+/***/
 public class TransactionalCache implements Cache {
 
   private static final Log log = LogFactory.getLog(TransactionalCache.class);

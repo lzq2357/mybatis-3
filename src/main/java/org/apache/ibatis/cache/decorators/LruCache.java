@@ -25,10 +25,19 @@ import org.apache.ibatis.cache.Cache;
  * Lru (least recently used) cache decorator
  *
  * @author Clinton Begin
+ *
+ *
+ *
+ * 使用 LinkedHashMap 队列存储 cachekey，使用了参数 accessOrder：按访问排序（即LRU）
+ *
+ * 插入一个元素后，会调用 removeEldestEntry ，判断是否删除头部的元素，如果满了 1024个 则移除
+ *
+ *
  */
 public class LruCache implements Cache {
 
   private final Cache delegate;
+  //1024
   private Map<Object, Object> keyMap;
   private Object eldestKey;
 
@@ -53,6 +62,10 @@ public class LruCache implements Cache {
 
       @Override
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
+
+          /** 插入一个元素后，会调用 removeEldestEntry ，是否删除头部的元素，默认是永远返回false
+           *  这里重写，当达到1024个 元素后，开始移除
+           * */
         boolean tooBig = size() > size;
         if (tooBig) {
           eldestKey = eldest.getKey();

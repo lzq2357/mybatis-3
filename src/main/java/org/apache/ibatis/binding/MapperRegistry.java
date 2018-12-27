@@ -30,10 +30,17 @@ import java.util.Set;
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
+ *
+ *
+ * Mapper 接口管理中心，管理 Mapper接口 及其对应的  【代理对象的工厂对象MapperProxyFactory】，
+ *
+ * getMapper：根据指定的 Mapper接口，获取它的 代理对象 MapperProxy，而代理对象 是通过 代理对象工厂 生成的
  */
 public class MapperRegistry {
 
   private final Configuration config;
+
+  /** 已注册的 Mapper */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -59,6 +66,8 @@ public class MapperRegistry {
 
   public <T> void addMapper(Class<T> type) {
     if (type.isInterface()) {
+
+        //已加载过
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
@@ -68,6 +77,8 @@ public class MapperRegistry {
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+
+          /** 注解Mapper */
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;

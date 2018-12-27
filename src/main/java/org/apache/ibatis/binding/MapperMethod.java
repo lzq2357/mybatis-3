@@ -28,6 +28,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
+import org.postgresql.core.SqlCommand;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -40,6 +41,15 @@ import java.util.*;
  * @author Eduardo Macarron
  * @author Lasse Voss
  * @author Kazuki Shimizu
+ *
+ *
+ *
+ * 包装了 Mapper接口内的 方法，以及对应的 SQL信息
+ * SqlCommand：SQL 的名称 和 类型(insert/select/update/delete)
+ *  SQL名称：接口名 + 方法名
+ *  实质是调用 sqlSession
+ *
+ *
  */
 public class MapperMethod {
 
@@ -51,6 +61,10 @@ public class MapperMethod {
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
+
+  /**
+   * 执行 SQL，并处理返回值
+   * */
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
     switch (command.getType()) {
@@ -70,16 +84,22 @@ public class MapperMethod {
         break;
       }
       case SELECT:
+
+          //select 方法，根据返回值类型，选择不同的 execute* 方法
         if (method.returnsVoid() && method.hasResultHandler()) {
           executeWithResultHandler(sqlSession, args);
           result = null;
         } else if (method.returnsMany()) {
+            //返回列表、数组
           result = executeForMany(sqlSession, args);
         } else if (method.returnsMap()) {
+            //返回map
           result = executeForMap(sqlSession, args);
         } else if (method.returnsCursor()) {
+            //返回 cursor
           result = executeForCursor(sqlSession, args);
         } else {
+            //返回单个指定 对象
           Object param = method.convertArgsToSqlCommandParam(args);
           result = sqlSession.selectOne(command.getName(), param);
           if (method.returnsOptional() &&
@@ -101,7 +121,12 @@ public class MapperMethod {
     return result;
   }
 
+
+
+  /** insert update delete 返回影响行数，可以返回 void、long、int、bool */
   private Object rowCountResult(int rowCount) {
+
+      //insert update delete 返回影响行数
     final Object result;
     if (method.returnsVoid()) {
       result = null;
@@ -269,6 +294,12 @@ public class MapperMethod {
     }
   }
 
+
+
+
+  /**
+   * 标记 返回值 类型
+   * */
   public static class MethodSignature {
 
     private final boolean returnsMany;

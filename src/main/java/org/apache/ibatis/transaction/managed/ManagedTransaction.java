@@ -33,6 +33,12 @@ import org.apache.ibatis.transaction.Transaction;
  * @author Clinton Begin
  *
  * @see ManagedTransactionFactory
+ *
+ *
+ *
+ *
+ * commit、rollback 都是空的，因为这里是让第三方框架 操作，所以这里啥也不做
+ *
  */
 public class ManagedTransaction implements Transaction {
 
@@ -62,6 +68,10 @@ public class ManagedTransaction implements Transaction {
     return this.connection;
   }
 
+
+  /**
+   *  commit、rollback 都是空的，因为这里是让第三方框架 操作，所以这里啥也不做
+   * */
   @Override
   public void commit() throws SQLException {
     // Does nothing

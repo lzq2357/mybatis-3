@@ -21,6 +21,13 @@ import org.apache.ibatis.cache.Cache;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ *
+ * 定时清理
+ * clearInterval ： 记录清理间隔。默认1小时
+ *
+ * 调用它的每个方法，都会去 查看 是否清理缓存
  */
 public class ScheduledCache implements Cache {
 

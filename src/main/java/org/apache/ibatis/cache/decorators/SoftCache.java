@@ -28,8 +28,17 @@ import org.apache.ibatis.cache.Cache;
  * Thanks to Dr. Heinz Kabutz for his guidance here.
  *
  * @author Clinton Begin
+ *
+ *
+ *
+ *
+ * 软引用：如果GC后，内存仍然不足，就会回收 Soft引用
+ *
+ *
  */
 public class SoftCache implements Cache {
+
+    /** 如果 SoftEntry 被用到了，则 hardLinksToAvoidGarbageCollection引用 SoftEntry */
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
   private final Cache delegate;
@@ -61,6 +70,10 @@ public class SoftCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     removeGarbageCollectedItems();
+
+    /** SoftEntry，是一个软引用，当GC回收了value时，会把 SoftEntry 放入 ReferenceQueue
+     * 这样 会根据 queueOfGarbageCollectedEntries ，移除掉 被GC的 softEntry
+     * */
     delegate.putObject(key, new SoftEntry(key, value, queueOfGarbageCollectedEntries));
   }
 
@@ -69,6 +82,8 @@ public class SoftCache implements Cache {
     Object result = null;
     @SuppressWarnings("unchecked") // assumed delegate cache is totally managed by this cache
     SoftReference<Object> softReference = (SoftReference<Object>) delegate.getObject(key);
+
+    /** 由于 可能被GC，所以取出来的 对象，需要判空 */
     if (softReference != null) {
       result = softReference.get();
       if (result == null) {
@@ -76,6 +91,10 @@ public class SoftCache implements Cache {
       } else {
         // See #586 (and #335) modifications need more than a read lock 
         synchronized (hardLinksToAvoidGarbageCollection) {
+
+            /** 如果 SoftEntry 被用到了，则 hardLinksToAvoidGarbageCollection引用 SoftEntry
+             * 这样 value就不会被 回收
+             * */
           hardLinksToAvoidGarbageCollection.addFirst(result);
           if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
             hardLinksToAvoidGarbageCollection.removeLast();
@@ -106,6 +125,10 @@ public class SoftCache implements Cache {
     return null;
   }
 
+
+  /**
+   *  会把被 GC调的
+   * */
   private void removeGarbageCollectedItems() {
     SoftEntry sv;
     while ((sv = (SoftEntry) queueOfGarbageCollectedEntries.poll()) != null) {
@@ -113,6 +136,10 @@ public class SoftCache implements Cache {
     }
   }
 
+
+  /**
+   * SoftEntry 是一个软引用，引用队列是 garbageCollectionQueue，所以可能会 被GC
+   * */
   private static class SoftEntry extends SoftReference<Object> {
     private final Object key;
 

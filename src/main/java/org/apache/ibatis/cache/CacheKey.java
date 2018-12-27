@@ -33,7 +33,11 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLYER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+
+  /** 参与计算的 ，默认值 37 */
   private final int multiplier;
+
+  /** hashCode */
   private int hashcode;
   private long checksum;
   private int count;
@@ -57,6 +61,8 @@ public class CacheKey implements Cloneable, Serializable {
   }
 
   public void update(Object object) {
+
+      //获取 hashCode
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object); 
 
     count++;
@@ -77,8 +83,9 @@ public class CacheKey implements Cloneable, Serializable {
   @Override
   public boolean equals(Object object) {
 
-      //todo liziq cacheKey相等的条件：
-      // hashcode、checksum 一致，updateList里面的对象顺序也必须一致
+      /**  cacheKey相等的条件：
+       * hashcode、checksum 一致，updateList里面的对象顺序也必须一致
+       */
     if (this == object) {
       return true;
     }

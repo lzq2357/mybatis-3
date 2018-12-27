@@ -28,6 +28,22 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
+
+
+/**
+ *
+ * 处理 Mapper 接口方法中的参数
+ *
+ * 按 参数index顺序，存入一个sortedMap，key是index, value是名称
+ * 取出时，
+ * 如果一个参数，则按参数名称给
+ * 如果多个参数，则 是 param+i
+ *
+ * aMethod(@Param("M") int a, @Param("N") int b) ->  {{0, "M"}, {1, "N"}}
+ * aMethod(int a, int b) ->                          {{0, "0"}, {1, "1"}}
+ * aMethod(int a, RowBounds rb, int b) ->            {{0, "0"}, {2, "1"}}
+ * */
+
 public class ParamNameResolver {
 
   private static final String GENERIC_NAME_PREFIX = "param";
@@ -45,22 +61,37 @@ public class ParamNameResolver {
    * <li>aMethod(int a, RowBounds rb, int b) -&gt; {{0, "0"}, {2, "1"}}</li>
    * </ul>
    */
+
+    /** names map： 存放参数的 index -> name  */
   private final SortedMap<Integer, String> names;
 
   private boolean hasParamAnnotation;
 
+
+
+  /**
+   * 处理方法上的参数
+   * */
   public ParamNameResolver(Configuration config, Method method) {
     final Class<?>[] paramTypes = method.getParameterTypes();
+
+    //参数上带的 注解
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
     final SortedMap<Integer, String> map = new TreeMap<>();
+
+    //这里，认为 注解个数就是 参数个数
     int paramCount = paramAnnotations.length;
     // get names from @Param annotations
     for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
+
+        //RowBounds、ResultHandler 两个参数 跳过
       if (isSpecialParameter(paramTypes[paramIndex])) {
         // skip special parameters
         continue;
       }
       String name = null;
+
+      //查看 当前参数，对应的  是否有 注解
       for (Annotation annotation : paramAnnotations[paramIndex]) {
         if (annotation instanceof Param) {
           hasParamAnnotation = true;
@@ -76,6 +107,8 @@ public class ParamNameResolver {
         if (name == null) {
           // use the parameter index as the name ("0", "1", ...)
           // gcode issue #71
+
+            //使用 参数 index 作为名称
           name = String.valueOf(map.size());
         }
       }
@@ -110,18 +143,22 @@ public class ParamNameResolver {
   public Object getNamedParams(Object[] args) {
 
       /**
-       * todo liziq 预处理 传入的参数值
+       * 预处理 传入的参数值
        * 传入时，是按 传入顺序 index 来映射的
        * 转换为：按 parameter1  或者  @param() 指定的值
        *
        * 所以这里的 结果，一般来说，是 args.length * 2 个
        * **/
     final int paramCount = names.size();
+
+    //没有参数
     if (args == null || paramCount == 0) {
       return null;
     } else if (!hasParamAnnotation && paramCount == 1) {
+        //只有一个未命名参数，则直接 给 index
       return args[names.firstKey()];
     } else {
+        //多个参数，则 param + i
       final Map<String, Object> param = new ParamMap<>();
       int i = 0;
       for (Map.Entry<Integer, String> entry : names.entrySet()) {

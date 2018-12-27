@@ -24,6 +24,10 @@ import org.apache.ibatis.session.SqlSession;
 
 /**
  * @author Lasse Voss
+ *
+ * Mapper接口的代理对象是 MapperProxy
+ * MapperProxy 由 MapperProxyFactory 通过动态代理得到
+ *
  */
 public class MapperProxyFactory<T> {
 
@@ -44,6 +48,8 @@ public class MapperProxyFactory<T> {
 
   @SuppressWarnings("unchecked")
   protected T newInstance(MapperProxy<T> mapperProxy) {
+
+      /** jdk动态代理 生成 实现了 mapperInterface的 代理对象  **/
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 

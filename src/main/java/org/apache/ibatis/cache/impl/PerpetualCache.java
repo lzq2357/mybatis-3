@@ -27,7 +27,10 @@ import org.apache.ibatis.cache.CacheException;
  */
 
 /**
- * todo liziq PerpetualCache = id + hashMap
+ * 只有 PerpetualCache 是真实实现了 Cache的功能，其他的cache都是在它之上的 装饰器
+ *
+ * key：CacheKey对象
+ *
  * */
 public class PerpetualCache implements Cache {
 

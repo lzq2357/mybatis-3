@@ -28,6 +28,11 @@ import org.apache.ibatis.cache.Cache;
  * Thanks to Dr. Heinz Kabutz for his guidance here.
  * 
  * @author Clinton Begin
+ *
+ *
+ *
+ * 弱引用：GC时，回收弱引用 指向的对象，所以弱引用的 生存时间是 两次GC之间
+ *
  */
 public class WeakCache implements Cache {
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
@@ -60,6 +65,8 @@ public class WeakCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     removeGarbageCollectedItems();
+
+    //包装 key、value为弱引用，指定
     delegate.putObject(key, new WeakEntry(key, value, queueOfGarbageCollectedEntries));
   }
 

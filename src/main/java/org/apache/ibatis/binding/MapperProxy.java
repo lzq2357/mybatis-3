@@ -29,12 +29,22 @@ import org.apache.ibatis.session.SqlSession;
 /**
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
+ *
+ * MapperProxy 实现了 InvocationHandler，用于被动态代理生成对象（主要是生成的对象要执行 invoke方法）
+ *      methodCache：缓存了 Mapper接口的 所有方法
+ *
+ * MapperMethod：Mapper接口的方法 + SQL信息(name + 类型)
+ *
  */
 public class MapperProxy<T> implements InvocationHandler, Serializable {
 
   private static final long serialVersionUID = -6424540398559729838L;
   private final SqlSession sqlSession;
   private final Class<T> mapperInterface;
+
+
+  /** 缓存 */
   private final Map<Method, MapperMethod> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethod> methodCache) {
@@ -46,6 +56,8 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+
+        /** 目标方法 是重写的 Object的方法，直接执行 */
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
       } else if (isDefaultMethod(method)) {
