@@ -50,12 +50,21 @@ import org.apache.ibatis.type.TypeHandler;
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
+ *
+ *
+ * 解析 mybatis-config.xml，生成 Configuration 对象
+ *
+ *
+ *
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
+    /** 是否解析过 */
   private boolean parsed;
   private final XPathParser parser;
   private String environment;
+
+  /** 创建 Reflector 的工厂 */
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
   public XMLConfigBuilder(Reader reader) {
@@ -96,32 +105,58 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+
+    //root节点： <configuration>，返回的 XNode，持有这个 parser
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
   private void parseConfiguration(XNode root) {
     try {
-      //issue #117 read properties first
-      propertiesElement(root.evalNode("properties"));
-      Properties settings = settingsAsProperties(root.evalNode("settings"));
-      loadCustomVfs(settings);
-      typeAliasesElement(root.evalNode("typeAliases"));
 
-      //todo liziq 解析 插件
+        /**
+         *  XNode：mybatis 包装了 W3C的 Node
+         *  XNode里面 有 parser，可以继续解析子表达式
+         * */
+      //issue #117 read properties first
+        /** 解析 <properties> */
+      propertiesElement(root.evalNode("properties"));
+
+        /** 解析 <settings> */
+        Properties settings = settingsAsProperties(root.evalNode("settings"));
+
+        /** 加载 自定义的 VFS */
+      loadCustomVfs(settings);
+
+        /** 解析 <typeAliases>，别名模块 */
+        typeAliasesElement(root.evalNode("typeAliases"));
+
+        /** 解析 <plugins> */
       pluginElement(root.evalNode("plugins"));
+
+        /** 解析 <objectFactory> */
       objectFactoryElement(root.evalNode("objectFactory"));
+
+
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+
+
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
 
-      //todo liziq 设置 默认值
+        /** 设置 setting 的默认值 */
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+
+        /** 解析 <environments> */
       environmentsElement(root.evalNode("environments"));
+
+
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+
+        /** 解析 <typeHandlers> */
       typeHandlerElement(root.evalNode("typeHandlers"));
 
-      //todo liziq 解析 mapper文件
+        /** 解析 <mappers> */
       mapperElement(root.evalNode("mappers"));
 
     } catch (Exception e) {
@@ -134,6 +169,8 @@ public class XMLConfigBuilder extends BaseBuilder {
       return new Properties();
     }
     Properties props = context.getChildrenAsProperties();
+
+    /** 检查 Configuration 是否有相应的 属性  */
     // Check that all settings are known to the configuration class
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
@@ -161,6 +198,8 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+
+          /** 扫描包 下所有的 别名 */
         if ("package".equals(child.getName())) {
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
@@ -184,9 +223,13 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
+        /** 全部子节点，即：<plugin interceptor="xxx.a" /> 节点
+         *  加入到 configuration.interceptorChain  责任链上
+         * */
       for (XNode child : parent.getChildren()) {
         String interceptor = child.getStringAttribute("interceptor");
         Properties properties = child.getChildrenAsProperties();
+
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
         interceptorInstance.setProperties(properties);
         configuration.addInterceptor(interceptorInstance);
@@ -233,6 +276,8 @@ public class XMLConfigBuilder extends BaseBuilder {
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+
+      /** 合并configuration 中原有的 Properties，因为 有可能 代码里面 加Properties   */
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
@@ -372,7 +417,10 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
 
-          //TODO 对应了 mapper加载的四种方式
+          /** 对应了 mapper加载的四种方式
+           *  package：
+           *
+           * */
         if ("package".equals(child.getName())) {
             //TODO liziq 这里是 spring-mybatis 按包扫描
           String mapperPackage = child.getStringAttribute("name");

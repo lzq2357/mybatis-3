@@ -30,6 +30,12 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * Budiler 模式，建造 Configuration，build 产品(Configuration) 的各个参数，然后 一个 getConfiguration 返回一个产品
+ *
+ * 还有一些都是 工具方法，子类可能用到的
+ * resolveTypeHandler、resolveAlias： 依赖 configuration， 解析 别名、typeHandler
  */
 public abstract class BaseBuilder {
   protected final Configuration configuration;

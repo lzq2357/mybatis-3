@@ -89,8 +89,13 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   public void parse() {
     if (!configuration.isResourceLoaded(resource)) {
+
+        //解析 mapper文件
       configurationElement(parser.evalNode("/mapper"));
+      //标记 已解析过
       configuration.addLoadedResource(resource);
+
+      //
       bindMapperForNamespace();
     }
 
@@ -103,9 +108,12 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
-  private void configurationElement(XNode context) {
 
-      //todo liziq 这里实际解析 mapper的各个 标签
+
+  /**
+   * liziq 这里实际解析 mapper的各个 标签
+   * */
+  private void configurationElement(XNode context) {
     try {
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.equals("")) {
@@ -118,7 +126,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
-      //todo liziq 解析参数  parameterMapm
+      //todo liziq 解析参数  parameterMap
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
 
       //todo liziq 解析 结果集映射  resultMap

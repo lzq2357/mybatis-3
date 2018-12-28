@@ -115,9 +115,12 @@ public class TypeAliasRegistry {
       if (string == null) {
         return null;
       }
-      // issue #748
+        /** 如果是别名，则获取 别名代表的class，如果没有别名，则返回字符串表示的 class */
+
+        // issue #748
       String key = string.toLowerCase(Locale.ENGLISH);
       Class<T> value;
+
       if (TYPE_ALIASES.containsKey(key)) {
         value = (Class<T>) TYPE_ALIASES.get(key);
       } else {
@@ -146,6 +149,8 @@ public class TypeAliasRegistry {
     }
   }
 
+
+  /** 处理 @alias 指定的别名 */
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
     Alias aliasAnnotation = type.getAnnotation(Alias.class);

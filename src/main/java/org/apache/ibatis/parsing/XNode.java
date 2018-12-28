@@ -301,6 +301,11 @@ public class XNode {
     return children;
   }
 
+  /** 根据 XNode，所有 的name、value 属性，生成 Properties
+   * <X>
+   *     <property name = "", value=""/>
+   * </X>
+   * */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {

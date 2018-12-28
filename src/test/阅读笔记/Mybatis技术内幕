@@ -9,6 +9,11 @@ XPathParser：mybatis 封装底层的 dom、xpath，提供了各种  Xpath.eval�
     XMLMapperEntityResolver：解析 xml时， 指定本地 DTD的位置，避免网上加载DTD，影响速度
     evalString：执行 PropertyParser.parse，  即：如果开启了默认值，还需要解析默认值。 enable-default-value/default-value-separator
         默认值格式 ${xxx:defaultValue} ，如果变量 xxx 未配置，则使用defaultValue 作为 配置的值
+    evalNode：根据 Xpath表达式，获取节点 XNode
+
+XNode：XNode：mybatis 包装了 W3C的 Node
+    XNode里面 有 parser，可以继续解析子表达式
+    getChildrenAsProperties：把当前节点的 子节点，作为 properties：<x> <property name="" value=""/> </x>
 
 
 用到的工具类：
@@ -173,7 +178,10 @@ CacheKey：
 
 
 
-3
+3 核心处理层
+
+
+
 
 
 
