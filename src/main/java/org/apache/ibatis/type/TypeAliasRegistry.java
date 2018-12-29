@@ -150,7 +150,9 @@ public class TypeAliasRegistry {
   }
 
 
-  /** 处理 @alias 指定的别名 */
+  /** 处理 @alias 指定的别名
+   *  只有在 配置 扫描 package的alias 的时候才会 扫描 @alias
+   * */
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
     Alias aliasAnnotation = type.getAnnotation(Alias.class);

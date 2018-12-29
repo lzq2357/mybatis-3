@@ -10,27 +10,33 @@
 		<!-- 分隔符，默认使用 : -->
 		<property name="org.apache.ibatis.parsing.PropertyParser.default-value-separator" value=":"/>
 	</properties>
+	
+	<typeAliases>
+		<package name="liziq.entity"/>
+	</typeAliases>
+	
 	<plugins>
 		<plugin interceptor="liziq.MyInterceptor1"/>
 	</plugins>
 	
-  <environments default="development">
-	  <environment id="development">
-		  <!-- 事务管理类型，JDBC表示直接使用JDBC的提交和回滚设置，依赖于数据源得到的连接来管理事务 -->
-		  <transactionManager type="JDBC" />
-		
-		  <!-- 数据库连接池,POOLED表示使用数据库连接池 -->
-		  <dataSource type="POOLED">
-			  <property name="driver" value="com.mysql.jdbc.Driver" />
-			  <property name="url" value="jdbc:mysql://localhost:3306/mybatis" />
-			  <property name="username" value="root" />
-			  <property name="password" value="123456" />
-		  </dataSource>
-	  </environment>
-  </environments>
-  
 	
-  <mappers>
-	  <mapper resource="resources/liziq/Mapper.xml" />
-  </mappers>
+	<environments default="development">
+		<environment id="development">
+			<!-- 事务管理类型，JDBC表示直接使用JDBC的提交和回滚设置，依赖于数据源得到的连接来管理事务 -->
+			<transactionManager type="JDBC"/>
+			
+			<!-- 数据库连接池,POOLED表示使用数据库连接池 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.jdbc.Driver"/>
+				<property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>
+				<property name="username" value="root"/>
+				<property name="password" value="123456"/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	
+	<mappers>
+		<mapper resource="resources/liziq/Mapper.xml"/>
+	</mappers>
 </configuration>

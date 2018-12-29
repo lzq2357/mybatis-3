@@ -51,6 +51,14 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * liziq
+ * Mapper 建造的帮助类
+ * 1.帮助建造 Cache
+ *
+ * useCacheRef()：返回 引用的 其他 namespace 的 cache 对象
+ *
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
@@ -103,6 +111,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+
+
+  /**  使用其他 namespace 的 cache 对象 */
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
@@ -128,8 +139,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean readWrite,
       boolean blocking,
       Properties props) {
+
+      /** build模式 */
     Cache cache = new CacheBuilder(currentNamespace)
+            /** 实现类，为空 则默认是 PerpetualCache  */
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
+            /** 加装饰器 LruCache */
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
         .clearInterval(flushInterval)
         .size(size)
@@ -187,6 +202,8 @@ public class MapperBuilderAssistant extends BaseBuilder {
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+
+      //查看依赖的 resultMap
       ResultMap resultMap = configuration.getResultMap(extend);
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
       extendedResultMappings.removeAll(resultMappings);

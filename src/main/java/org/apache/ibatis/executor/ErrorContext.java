@@ -17,6 +17,13 @@ package org.apache.ibatis.executor;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * 记录状态的类，以便异常时能 获取信息。
+ * 一般用法:
+ *  ErrorContext.instance().xxx()，设置当前线程的 某些变量值，比如 sql值
+ *
+ *
  */
 public class ErrorContext {
 

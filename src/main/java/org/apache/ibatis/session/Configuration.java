@@ -96,6 +96,8 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public class Configuration {
 
+
+  /**  环境信息 */
   protected Environment environment;
 
   protected boolean safeRowBoundsEnabled;
@@ -114,16 +116,25 @@ public class Configuration {
 
   protected String logPrefix;
   protected Class <? extends Log> logImpl;
+
+  /** 自定义的 VFS */
   protected Class <? extends VFS> vfsImpl;
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
+
+  /** 数据库 null 值 */
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
   protected Set<String> lazyLoadTriggerMethods = new HashSet<>(Arrays.asList("equals", "clone", "hashCode", "toString"));
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+
+  /** Collection、Assacion 是否自动映射 */
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
+
+  /***/
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
+  /** 定义的变量 ，可能是xml，也可能是代码里面定义的 */
   protected Properties variables = new Properties();
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
@@ -156,9 +167,24 @@ public class Configuration {
   protected final Set<String> loadedResources = new HashSet<>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+
+  /** 同incompleteResultMaps， 待赋值的 statement对象 */
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
+
+  /** 同incompleteResultMaps，  待赋值的 Cache对象，一般是通过 CacheRef节点引用的  */
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
+
+
+    /**
+     * 如果 一个 Mapper1 有引用   OtherMapper.OtherResultMap，而 OtherMapper.OtherResultMap 还未解析
+     * 这时候会把 这个 Mapper1.OtherResultMap 记录到 incompleteResultMaps
+     *
+     * 解析 OtherMapper时，会把这个 OtherMapper.OtherResultMap
+     * 赋值给 那些引用了的 Mapper1.OtherResultMap
+     * */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+
+  /** 同incompleteResultMaps，  待赋值的 Method 对象*/
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*

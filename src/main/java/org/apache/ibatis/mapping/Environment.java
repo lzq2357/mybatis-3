@@ -21,6 +21,8 @@ import org.apache.ibatis.transaction.TransactionFactory;
 
 /**
  * @author Clinton Begin
+ *
+ * mybatis-config.xml里面 environment 标签对应的对象
  */
 public final class Environment {
   private final String id;

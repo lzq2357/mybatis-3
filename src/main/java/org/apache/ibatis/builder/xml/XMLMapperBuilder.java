@@ -49,6 +49,12 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * @author Clinton Begin
+ *
+ * liziq
+ * 解析构造 Mapper，解析入口是 parse() -> configurationElement("/mapper")
+ *
+ *
+ *
  */
 public class XMLMapperBuilder extends BaseBuilder {
 
@@ -95,13 +101,25 @@ public class XMLMapperBuilder extends BaseBuilder {
       //标记 已解析过
       configuration.addLoadedResource(resource);
 
-      //
+      //添加到 configuration.mapperRegistry.knownMappers，key是 namespace id
       bindMapperForNamespace();
     }
 
+      /**
+       * 如果 一个 Mapper1 有引用   OtherMapper.OtherResultMap，而 OtherMapper.OtherResultMap 还未解析
+       * 这时候会把 这个 Mapper1.OtherResultMap 记录到 configuration.incompleteResultMaps
+       *
+       * 解析 OtherMapper时，会把这个 OtherMapper.OtherResultMap
+       * 赋值给 那些引用了的 Mapper1.OtherResultMap
+       * */
     parsePendingResultMaps();
-    parsePendingCacheRefs();
-    parsePendingStatements();
+
+
+
+      parsePendingCacheRefs();
+
+      //待解析 的 Statement
+      parsePendingStatements();
   }
 
   public XNode getSqlFragment(String refid) {
@@ -121,20 +139,21 @@ public class XMLMapperBuilder extends BaseBuilder {
       }
       builderAssistant.setCurrentNamespace(namespace);
 
-      //todo liziq mapper二级缓存
-
-
+      /*** mapper二级缓存 和引用别人的缓存  */
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
-      //todo liziq 解析参数  parameterMap
+
+
+      //liziq 解析参数  parameterMap，不常用
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
 
-      //todo liziq 解析 结果集映射  resultMap
+      /** 解析 mapper内的 resultMap标签   */
       resultMapElements(context.evalNodes("/mapper/resultMap"));
 
+      /** 解析 Mapper内的 sql 标签*/
       sqlElement(context.evalNodes("/mapper/sql"));
 
-      //todo liziq 获取 select|insert|update|delete  sql，建立 statement
+      /** 解析 mapper的 select|insert|update|delete  标签 **/
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -165,6 +184,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       Iterator<ResultMapResolver> iter = incompleteResultMaps.iterator();
       while (iter.hasNext()) {
         try {
+
           iter.next().resolve();
           iter.remove();
         } catch (IncompleteElementException e) {
@@ -220,7 +240,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     if (context != null) {
         //def 引用的名称，都是 别名，configuration里面已经存有相应的类
 
-        //todo liziq 二级缓存默认 LRU算法，默认使用 PERPETUAL
+        /** 二级缓存默认使用：
+         * type：cache实现类。PerpetualCache
+         * eviction：回收算法：LRU
+         * size：大小
+         * **/
       String type = context.getStringAttribute("type", "PERPETUAL");
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
 
@@ -232,6 +256,8 @@ public class XMLMapperBuilder extends BaseBuilder {
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
       boolean blocking = context.getBooleanAttribute("blocking", false);
       Properties props = context.getChildrenAsProperties();
+
+      /** builderAssistant 缓存创建 辅助类 */
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }
@@ -264,6 +290,8 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void resultMapElements(List<XNode> list) throws Exception {
+
+      //多个 ResultMap
     for (XNode resultMapNode : list) {
       try {
         resultMapElement(resultMapNode);
@@ -277,20 +305,35 @@ public class XMLMapperBuilder extends BaseBuilder {
     return resultMapElement(resultMapNode, Collections.<ResultMapping> emptyList());
   }
 
+
+  /** 解析 ResultMap标签
+   *    每个ResultMap标签，会被解析为
+   *    每个 子节点，比如 <property />，ResultMapping
+   * */
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
+
+    /** <resultMap id="" type="xxClass"/> */
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());
+
     String type = resultMapNode.getStringAttribute("type",
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
 
-    //todo liziq
+    //继承 的ResultMap
     String extend = resultMapNode.getStringAttribute("extends");
+
+    //自动映射
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
+
+
     Class<?> typeClass = resolveClass(type);
     Discriminator discriminator = null;
+
+
+    //存 解析结果，每个
     List<ResultMapping> resultMappings = new ArrayList<>();
     resultMappings.addAll(additionalResultMappings);
     List<XNode> resultChildren = resultMapNode.getChildren();
@@ -423,7 +466,8 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private void bindMapperForNamespace() {
-      //todo liziq builderAssistant 存有namespace的名称，用于生成一个默认的mapper接口，这里是 走statement方式
+
+
     String namespace = builderAssistant.getCurrentNamespace();
     if (namespace != null) {
       Class<?> boundType = null;

@@ -36,10 +36,18 @@ import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * 参考 build()方法，一层层装饰创建 Cache
  */
 public class CacheBuilder {
   private final String id;
+
+  /** cache 实现类。默认只有 */
   private Class<? extends Cache> implementation;
+
+
+  /** Cache 上加的装饰器 */
   private final List<Class<? extends Cache>> decorators;
   private Integer size;
   private Long clearInterval;
@@ -94,11 +102,18 @@ public class CacheBuilder {
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
+
+      /** 自定义 的cache，不会加装饰器 */
     if (PerpetualCache.class.equals(cache.getClass())) {
+
+        /** 遍历每个装饰器 */
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
+        //设置 cache 参数
         setCacheProperties(cache);
       }
+
+      /** 标准 cache 的包装，比如设置了 刷新时间，则包装一层 ScheduledCache **/
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       cache = new LoggingCache(cache);

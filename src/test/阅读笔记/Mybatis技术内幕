@@ -182,6 +182,23 @@ CacheKey：
 
 
 
+XMLMapperBuilder：解析 Mapper的 建造模式
+    parse() -> configurationElement()
+
+CacheBuilder：建造二级缓存【Cache对象】
+    <cache type="第三方实现了Cache接口的实现类"/>，第三方实现是不会 加装饰器的
+    implementation：Cache实现类，即type指向的类。
+    List<Class<? extends Cache>> decorators：Cache上的装饰器，默认是 只有一个 LRUCache
+    build() 时，会 遍历 decorators，一层层包装 Cache
+
+
+
+
+
+Configuration
+
+
+
 
 
 

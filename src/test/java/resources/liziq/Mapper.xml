@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-		<!DOCTYPE mapper
-				PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-				"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
 
 <mapper namespace="liziq.Mapper">
+	<!--<cache type="" eviction=""/>-->
 	<resultMap id="BaseResultMap" type = "liziq.Person">
 		<id column="id" property="id"/>
 		<result column="name" property="name"/>
@@ -49,5 +48,66 @@
 		on t.id = utt.tag_id
 		where u.id in(1,2,3)
 
+	</select>
+	
+	
+	
+	
+	<!-- 作者信息 -->
+	<resultMap id="authorResult" type="author">
+		<id property="id" column="author_id"/>
+		<result property="userName" column="author_user_name"/>
+		<result property="password" column="author_password"/>
+		<result property="email" column="author_email"/>
+	</resultMap>
+	
+	
+	<!-- blog信息， -->
+	<resultMap id="detailBlogResultMap" type="blog">
+		<constructor>
+			<idArg column="blog_id" javaType="int"/>
+		</constructor>
+		
+		<result property="title" column="blog_title"/>
+		
+		<association property="author" resultMap="authorResult"/>
+		
+		<collection property="postList" ofType="post">
+			<id property="id" column="post_id"/>
+			<result property="blogId" column="post_blog_id"/>
+			<result property="content" column="post_content"/>
+			
+			<!-- collection 里面套collection，插件 识别不出来，还是认为是 blog里面的collection -->
+			<collection property="commentList" column="post_id" select="selectComment"/>
+		</collection>
+		
+	</resultMap>
+	
+	<select id="selectComment" resultType="comment">
+		select id, content from comment where post_id = #{post_id}
+	</select>
+	
+	
+	<select id="selectBlogDetails" resultMap="detailBlogResultMap">
+		select
+		b.id as blog_id,
+		b.title as blog_title,
+		b.author_id as blog_authod_id,
+		
+		a.id as author_id,
+		a.user_name as author_user_name,
+		a.password as author_password,
+		a.email as author_email,
+		
+		p.id as post_id,
+		p.blog_id as post_blog_id,
+		p.content as post_content
+		
+		from blog b
+		left join author a
+		on b.author_id = a.id
+		left join post p
+		on b.id = p.blog_id
+		where b.id = #{id}
 	</select>
 </mapper>

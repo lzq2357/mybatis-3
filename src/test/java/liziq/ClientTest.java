@@ -6,6 +6,8 @@ package liziq;
  * @description:
  */
 
+import com.alibaba.fastjson.JSON;
+import liziq.entity.Blog;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -27,8 +29,13 @@ public class ClientTest {
        // List<PersonWithTag> personWithTags = mapper.selectPersonWithTag(3);
 
         //
-        String statement = "liziq.Mapper.selectPerson";
+        /*String statement = "liziq.Mapper.selectPerson";
         Person person = session.selectOne(statement, 1);
-        System.out.println(person.getName());
+        System.out.println(person.getName());*/
+
+        Blog blog = mapper.selectBlogDetails(1);
+
+        System.out.println(JSON.toJSONString(blog));
+
     }
 }
