@@ -33,6 +33,40 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
+ *
+ * mapper.xml中，ResultMap 标签 对应的实体
+ *
+ *
+ *   <resultMap id="authorResult" type="author">
+        <id property="id" column="author_id"/>
+        <result property="userName" column="author_user_name"/>
+        <result property="password" column="author_password"/>
+        <result property="email" column="author_email"/>
+     </resultMap>
+
+
+            <resultMap id="detailBlogResultMap" type="blog">
+                <constructor>
+                    <idArg column="blog_id" javaType="int"/>
+                </constructor>
+
+                <result property="title" column="blog_title"/>
+
+                <association property="author" resultMap="authorResult"/>
+
+                <collection property="postList" ofType="post">
+                    <id property="id" column="post_id"/>
+                    <result property="blogId" column="post_blog_id"/>
+                    <result property="content" column="post_content"/>
+
+
+                    <collection property="commentList" column="post_id" select="selectComment"/>
+                </collection>
+            </resultMap>
+ *
+ * mappedColumns：有映射关系的 列名集合
+ * mappedProperties：有映射关系的 POJO类 属性集合
+ *
  */
 public class ResultMap {
   private Configuration configuration;
@@ -41,15 +75,20 @@ public class ResultMap {
   private Class<?> type;
   private List<ResultMapping> resultMappings;
 
-  /** id 列*/
+  /** id 标签对应的 映射关系 */
   private List<ResultMapping> idResultMappings;
+
+  /** constructor标签 对应的 映射关系 */
   private List<ResultMapping> constructorResultMappings;
+
+  /** 普通的 result标签对应的 映射关系 */
   private List<ResultMapping> propertyResultMappings;
 
 
   private Set<String> mappedColumns;
   private Set<String> mappedProperties;
   private Discriminator discriminator;
+
   private boolean hasNestedResultMaps;
   private boolean hasNestedQueries;
   private Boolean autoMapping;

@@ -31,6 +31,8 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Clinton Begin
+ *
+ * 动态 SQL解析。  针对 trim 、where、foreache 等标签，会有专门的 NodeHandler 去处理
  */
 public class XMLScriptBuilder extends BaseBuilder {
 

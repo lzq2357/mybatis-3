@@ -55,13 +55,17 @@ import org.apache.ibatis.type.TypeHandler;
  *
  * liziq
  * Mapper 建造的帮助类
- * 1.帮助建造 Cache
  *
- * useCacheRef()：返回 引用的 其他 namespace 的 cache 对象
- *
+ * 1.帮助建造 Cache：
+ *  useNewCache：建造 Cache 实体
+ *  useCacheRef()：返回 引用的 其他 namespace 的 cache 对象
+ * 2.帮助建造 映射关系实体。 buildResultMapping
+ * 3.帮助建造 ResultMap 实体 addResultMap
+ * 4.帮助建造 MappedStatement， addMappedStatement
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
+  /** 当前的 Mapper的 namespace，即全限定名 */
   private String currentNamespace;
   private final String resource;
   private Cache currentCache;
@@ -90,6 +94,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
     this.currentNamespace = currentNamespace;
   }
 
+
+  /**
+   * 获取 namespace + id，全局唯一标示名
+   * */
   public String applyCurrentNamespace(String base, boolean isReference) {
     if (base == null) {
       return null;
@@ -206,8 +214,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
       //查看依赖的 resultMap
       ResultMap resultMap = configuration.getResultMap(extend);
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
+
+      //删除 父ResultMap 中，被覆盖掉的 映射关系
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.
+
+        //当前节点 定义了 constructor，那么对当前节点来说， 父节点的 constructor 就没有用了，需要移除
       boolean declaresConstructor = false;
       for (ResultMapping resultMapping : resultMappings) {
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
@@ -375,6 +387,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return resultMaps;
   }
 
+
+  /**
+   * 创建 resultMap
+   * */
   public ResultMapping buildResultMapping(
       Class<?> resultType,
       String property,
@@ -392,6 +408,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean lazy) {
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
+
+    //当 column是”{prop1=col1,prop2=col2}”形式时， 会解析成多个 映射关系ResultMapping
+      // 为了一个参数传递多个值
     List<ResultMapping> composites = parseCompositeColumnName(column);
     return new ResultMapping.Builder(configuration, property, column, javaTypeClass)
         .jdbcType(jdbcType)

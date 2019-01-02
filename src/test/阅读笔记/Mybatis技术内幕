@@ -182,14 +182,35 @@ CacheKey：
 
 
 
-XMLMapperBuilder：解析 Mapper的 建造模式
-    parse() -> configurationElement()
+XMLMapperBuilder：解析 Mapper.xml，建造模式
+    parse() -> configurationElement() 解析入口
+
+    cacheElement：解析二级缓存。 每个 mapper 或者 select 标签可以指定 二级缓存策略
+        调用 CacheBuilder 生成 cache 对象
+
+    resultMapElements()：解析 resultMap
+        每个 <resultMap/> 标签会被解析为一个 ResultMap 实体对象
+        每个 <resultMap/> 标签下的 映射关系，会被解析成一个 ResultMapping 对象
+    buildResultMappingFromContext()：解析 映射关系的 各个属性，根据这些属性，构造一个 映射关系实体 ResultMapping， 内部会 解析 collection、association 嵌套映射(resultMap)
+
+    sqlElement()：解析 <sql/> 标签定义的 公共SQL字符串，放在 sqlFragments
+
+    buildStatementFromContext()：解析 select | insert | update | delete 标签及其子标签，生成一个 MappedStatement，放在 configuration
+        调用 XMLStatementBuilder.parse() -> parseStatementNode()
+
 
 CacheBuilder：建造二级缓存【Cache对象】
     <cache type="第三方实现了Cache接口的实现类"/>，第三方实现是不会 加装饰器的
     implementation：Cache实现类，即type指向的类。
     List<Class<? extends Cache>> decorators：Cache上的装饰器，默认是 只有一个 LRUCache
     build() 时，会 遍历 decorators，一层层包装 Cache
+
+
+
+XMLStatementBuilder：
+    主要是解析动态SQL
+
+
 
 
 

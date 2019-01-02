@@ -20,6 +20,10 @@ package org.apache.ibatis.mapping;
  * It creates the SQL that will be passed to the database out of the input parameter received from the user.
  *
  * @author Clinton Begin
+ *
+ *
+ * BoundSql 代表 select / insert/update/delete 等标签标记的 原始SQL 语句，但不能直接执行，因为可能 带有 占位符
+ * SqlSource：获取 BoundSql 的工厂
  */
 public interface SqlSource {
 

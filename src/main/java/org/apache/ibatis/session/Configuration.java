@@ -152,18 +152,32 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+
+  /** */
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+
+  /** */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+
+  /** */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+
+  /** 所有的 insert | select | update | delete SQL语句对象 */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<>("Mapped Statements collection");
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
+
+  /** 存所有 ResultMap 集合，Key为：NameSpace + ID，  */
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
+
+  /** 所有的 keyGenerator */
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+
+  /** 标记 加载过的资源，比如 加载过的Mapper：*/
   protected final Set<String> loadedResources = new HashSet<>();
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
@@ -181,6 +195,8 @@ public class Configuration {
      *
      * 解析 OtherMapper时，会把这个 OtherMapper.OtherResultMap
      * 赋值给 那些引用了的 Mapper1.OtherResultMap
+     *
+     * 还有一种是 异常导致 ResultMap 未解析完
      * */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
 

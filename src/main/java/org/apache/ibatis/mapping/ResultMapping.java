@@ -27,11 +27,16 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
  * @author Clinton Begin
+ *
+ * property: pojo属性
+ * column: 数据库 列名
  */
 public class ResultMapping {
 
   private Configuration configuration;
   private String property;
+
+
   private String column;
   private Class<?> javaType;
   private JdbcType jdbcType;

@@ -78,8 +78,9 @@
 			<result property="content" column="post_content"/>
 			
 			<!-- collection 里面套collection，插件 识别不出来，还是认为是 blog里面的collection -->
-			<collection property="commentList" column="post_id" select="selectComment"/>
+			<collection property="commentList" column="post_id" select="selectComment" />
 		</collection>
+		
 		
 	</resultMap>
 	

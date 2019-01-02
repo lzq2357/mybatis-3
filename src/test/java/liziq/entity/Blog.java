@@ -22,6 +22,8 @@ import java.util.List;
 @ToString
 public class Blog {
 
+    /** 这里必须 是Integer，不能是int，否则会 报错
+     * 因为 jdbc 的int型转过来时 java 的Integer，然后用来找 构造函数*/
     public Blog(Integer id){
         this.id = id;
     }

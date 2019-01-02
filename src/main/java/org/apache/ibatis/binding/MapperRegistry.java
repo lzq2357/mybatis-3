@@ -34,6 +34,7 @@ import java.util.Set;
  *
  * Mapper 接口管理中心，管理 Mapper接口 及其对应的  【代理对象的工厂对象MapperProxyFactory】，
  *
+ * knownMappers：已注册加载过的 Mapper
  * getMapper：根据指定的 Mapper接口，获取它的 代理对象 MapperProxy，而代理对象 是通过 代理对象工厂 生成的
  */
 public class MapperRegistry {

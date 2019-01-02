@@ -21,6 +21,7 @@ package org.apache.ibatis.executor;
  *
  * 记录状态的类，以便异常时能 获取信息。
  * 一般用法:
+ *  ErrorContext.instance()：获取当前线程，对应的 ErrorContext
  *  ErrorContext.instance().xxx()，设置当前线程的 某些变量值，比如 sql值
  *
  *
